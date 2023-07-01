@@ -38,7 +38,7 @@ Add your own configuration to the `packages/app/src/apis.ts` file the following 
 
 ```ts
 import { identityApiRef } from '@backstage/core-plugin-api';
-import { GraphQLVoyagerEndpoints } from '@backstage/plugin-graphql-voyager';
+import { GraphQLVoyagerEndpoints, graphQlVoyagerApiRef } from '@backstage/plugin-graphql-voyager';
 
 export const apis: AnyApiFactory[] = [
   createApiFactory({
