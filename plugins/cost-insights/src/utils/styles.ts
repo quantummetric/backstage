@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {
-  createStyles,
   emphasize,
+  lighten,
   darken,
   getLuminance,
-  lighten,
-  makeStyles,
-} from '@material-ui/core';
-import { BackstageTheme } from '@backstage/theme';
+} from '@material-ui/core/styles/colorManipulator';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { CostInsightsTheme, CostInsightsThemeOptions } from '../types';
 
 export const costInsightsLightTheme = {
@@ -82,7 +81,7 @@ export const costInsightsDarkTheme = {
   },
 } as CostInsightsThemeOptions;
 
-// The opposite of MUI's emphasize function - darken darks, lighten lights
+// The opposite of Material UI's emphasize function - darken darks, lighten lights
 export function brighten(color: string, coefficient = 0.2) {
   return getLuminance(color) > 0.5
     ? lighten(color, coefficient)
@@ -155,7 +154,7 @@ export const useBarChartStyles = (theme: CostInsightsTheme) => ({
   },
 });
 
-export const useBarChartLayoutStyles = makeStyles<BackstageTheme>(theme =>
+export const useBarChartLayoutStyles = makeStyles(theme =>
   createStyles({
     wrapper: {
       display: 'flex',
@@ -197,7 +196,7 @@ export const useBarChartStepperButtonStyles = makeStyles<CostInsightsTheme>(
     }),
 );
 
-export const useBarChartLabelStyles = makeStyles<BackstageTheme>(theme =>
+export const useBarChartLabelStyles = makeStyles(theme =>
   createStyles({
     foreignObject: {
       textAlign: 'center',
@@ -222,7 +221,7 @@ export const useBarChartLabelStyles = makeStyles<BackstageTheme>(theme =>
   }),
 );
 
-export const useCostInsightsStyles = makeStyles<BackstageTheme>(theme => ({
+export const useCostInsightsStyles = makeStyles(theme => ({
   h6Subtle: {
     ...theme.typography.h6,
     fontWeight: 'normal',
@@ -230,84 +229,80 @@ export const useCostInsightsStyles = makeStyles<BackstageTheme>(theme => ({
   },
 }));
 
-export const useCostInsightsTabsStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) => ({
-    tabs: {
-      borderBottom: `1px solid ${theme.palette.textVerySubtle}`,
-      backgroundColor: brighten(theme.palette.background.default),
-      padding: theme.spacing(0, 4),
+export const useCostInsightsTabsStyles = makeStyles<Theme>(theme => ({
+  tabs: {
+    borderBottom: `1px solid ${theme.palette.textVerySubtle}`,
+    backgroundColor: brighten(theme.palette.background.default),
+    padding: theme.spacing(0, 4),
+  },
+  tab: {
+    minHeight: 68,
+    minWidth: 180,
+    padding: theme.spacing(1, 4),
+    '&:hover': {
+      color: 'inherit',
+      backgroundColor: 'inherit',
     },
-    tab: {
-      minHeight: 68,
-      minWidth: 180,
-      padding: theme.spacing(1, 4),
-      '&:hover': {
-        color: 'inherit',
-        backgroundColor: 'inherit',
-      },
+  },
+  indicator: {
+    backgroundColor: theme.palette.navigation.indicator,
+    height: 4,
+  },
+  tabLabel: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  tabLabelText: {
+    fontSize: theme.typography.fontSize,
+    fontWeight: theme.typography.fontWeightBold,
+  },
+  menuItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minWidth: 180,
+    padding: theme.spacing(2, 2),
+  },
+  menuItemSelected: {
+    backgroundColor: lighten(theme.palette.background.default, 0.3),
+  },
+}));
+
+export const useAlertCardActionHeaderStyles = makeStyles(theme =>
+  createStyles({
+    root: {
+      paddingBottom: theme.spacing(2),
+      borderRadius: 'unset',
     },
-    indicator: {
-      backgroundColor: theme.palette.navigation.indicator,
-      height: 4,
-    },
-    tabLabel: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-    tabLabelText: {
+    title: {
       fontSize: theme.typography.fontSize,
       fontWeight: theme.typography.fontWeightBold,
+      lineHeight: 1.5,
     },
-    menuItem: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      minWidth: 180,
-      padding: theme.spacing(2, 2),
-    },
-    menuItemSelected: {
-      backgroundColor: lighten(theme.palette.background.default, 0.3),
+    action: {
+      margin: 0,
     },
   }),
 );
 
-export const useAlertCardActionHeaderStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      root: {
-        paddingBottom: theme.spacing(2),
-        borderRadius: 'unset',
-      },
-      title: {
-        fontSize: theme.typography.fontSize,
-        fontWeight: theme.typography.fontWeightBold,
-        lineHeight: 1.5,
-      },
-      action: {
-        margin: 0,
-      },
-    }),
+export const useCostGrowthStyles = makeStyles(theme =>
+  createStyles({
+    excess: {
+      color: theme.palette.status.error,
+    },
+    savings: {
+      color: theme.palette.status.ok,
+    },
+    indicator: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+  }),
 );
 
-export const useCostGrowthStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      excess: {
-        color: theme.palette.status.error,
-      },
-      savings: {
-        color: theme.palette.status.ok,
-      },
-      indicator: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-      },
-    }),
-);
-
-export const useCostGrowthLegendStyles = makeStyles<BackstageTheme>(theme => ({
+export const useCostGrowthLegendStyles = makeStyles(theme => ({
   h5: {
     ...theme.typography.h5,
     fontWeight: 500,
@@ -339,44 +334,43 @@ export const useCostGrowthLegendStyles = makeStyles<BackstageTheme>(theme => ({
   },
 }));
 
-export const useBarChartStepperStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      paper: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        background: 'transparent',
-        padding: 8,
-      },
-      step: {
-        backgroundColor: theme.palette.action.disabled,
-        borderRadius: '50%',
-        width: 9,
-        height: 9,
-        margin: '0 2px',
-      },
-      stepActive: {
-        backgroundColor: theme.palette.primary.main,
-      },
-      steps: {
-        display: 'flex',
-        flexDirection: 'row',
-      },
-      backButton: {
-        position: 'absolute',
-        left: 0,
-        top: 'calc(50% - 60px)',
-        zIndex: 100,
-      },
-      nextButton: {
-        position: 'absolute',
-        right: 0,
-        top: 'calc(50% - 60px)',
-        zIndex: 100,
-      },
-    }),
+export const useBarChartStepperStyles = makeStyles(theme =>
+  createStyles({
+    paper: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      background: 'transparent',
+      padding: 8,
+    },
+    step: {
+      backgroundColor: theme.palette.action.disabled,
+      borderRadius: '50%',
+      width: 9,
+      height: 9,
+      margin: '0 2px',
+    },
+    stepActive: {
+      backgroundColor: theme.palette.primary.main,
+    },
+    steps: {
+      display: 'flex',
+      flexDirection: 'row',
+    },
+    backButton: {
+      position: 'absolute',
+      left: 0,
+      top: 'calc(50% - 60px)',
+      zIndex: 100,
+    },
+    nextButton: {
+      position: 'absolute',
+      right: 0,
+      top: 'calc(50% - 60px)',
+      zIndex: 100,
+    },
+  }),
 );
 
 export const useNavigationStyles = makeStyles<CostInsightsTheme>(
@@ -451,32 +445,30 @@ export const useTooltipStyles = makeStyles<CostInsightsTheme>(
     }),
 );
 
-export const useAlertInsightsSectionStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      button: {
-        backgroundColor: theme.palette.textVerySubtle,
-        color: theme.palette.text.primary,
-      },
-    }),
+export const useAlertInsightsSectionStyles = makeStyles(theme =>
+  createStyles({
+    button: {
+      backgroundColor: theme.palette.textVerySubtle,
+      color: theme.palette.text.primary,
+    },
+  }),
 );
 
-export const useSelectStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      select: {
-        minWidth: 200,
-        textAlign: 'start',
-        backgroundColor: theme.palette.background.paper,
+export const useSelectStyles = makeStyles(theme =>
+  createStyles({
+    select: {
+      minWidth: 200,
+      textAlign: 'start',
+      backgroundColor: theme.palette.background.paper,
+    },
+    menuItem: {
+      minWidth: 200,
+      padding: theme.spacing(2),
+      '&.compact': {
+        padding: theme.spacing(1, 2),
       },
-      menuItem: {
-        minWidth: 200,
-        padding: theme.spacing(2),
-        '&.compact': {
-          padding: theme.spacing(1, 2),
-        },
-      },
-    }),
+    },
+  }),
 );
 
 export const useActionItemCardStyles = makeStyles<CostInsightsTheme>(
@@ -513,52 +505,48 @@ export const useActionItemCardStyles = makeStyles<CostInsightsTheme>(
     }),
 );
 
-export const useProductInsightsCardStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      root: {
-        padding: theme.spacing(2, 2, 2, 2.5), // restore backstage default padding
-      },
-      action: {
-        margin: 0, // unset negative margins
-      },
-    }),
+export const useProductInsightsCardStyles = makeStyles(theme =>
+  createStyles({
+    root: {
+      padding: theme.spacing(2, 2, 2, 2.5), // restore backstage default padding
+    },
+    action: {
+      margin: 0, // unset negative margins
+    },
+  }),
 );
 
-export const useProductInsightsChartStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      indicator: {
-        fontWeight: theme.typography.fontWeightBold,
-        fontSize: '1.25rem',
-      },
-      actions: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      },
-    }),
+export const useProductInsightsChartStyles = makeStyles(theme =>
+  createStyles({
+    indicator: {
+      fontWeight: theme.typography.fontWeightBold,
+      fontSize: '1.25rem',
+    },
+    actions: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+  }),
 );
 
-export const useBackdropStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      root: {
-        zIndex: theme.zIndex.modal,
-      },
-    }),
+export const useBackdropStyles = makeStyles(theme =>
+  createStyles({
+    root: {
+      zIndex: theme.zIndex.modal,
+    },
+  }),
 );
 
-export const useSubtleTypographyStyles = makeStyles<BackstageTheme>(
-  (theme: BackstageTheme) =>
-    createStyles({
-      root: {
-        color: theme.palette.textSubtle,
-      },
-    }),
+export const useSubtleTypographyStyles = makeStyles(theme =>
+  createStyles({
+    root: {
+      color: theme.palette.textSubtle,
+    },
+  }),
 );
 
-export const useEntityDialogStyles = makeStyles<BackstageTheme>(theme =>
+export const useEntityDialogStyles = makeStyles(theme =>
   createStyles({
     dialogContent: {
       padding: 0,
@@ -597,7 +585,7 @@ export const useEntityDialogStyles = makeStyles<BackstageTheme>(theme =>
   }),
 );
 
-export const useAlertDialogStyles = makeStyles((theme: BackstageTheme) =>
+export const useAlertDialogStyles = makeStyles(theme =>
   createStyles({
     content: {
       padding: theme.spacing(0, 5, 2, 5),

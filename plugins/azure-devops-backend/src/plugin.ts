@@ -31,17 +31,19 @@ export const azureDevOpsPlugin = createBackendPlugin({
   register(env) {
     env.registerInit({
       deps: {
-        config: coreServices.config,
+        config: coreServices.rootConfig,
         logger: coreServices.logger,
         reader: coreServices.urlReader,
+        permissions: coreServices.permissions,
         httpRouter: coreServices.httpRouter,
       },
-      async init({ config, logger, reader, httpRouter }) {
+      async init({ config, logger, reader, permissions, httpRouter }) {
         httpRouter.use(
           await createRouter({
             config,
             logger: loggerToWinstonLogger(logger),
             reader,
+            permissions,
           }),
         );
       },

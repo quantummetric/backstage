@@ -23,6 +23,7 @@ catalog:
         host: gitlab-host # Identifies one of the hosts set up in the integrations
         branch: main # Optional. Used to discover on a specific branch
         fallbackBranch: main # Optional. Fallback to be used if there is no default branch configured at the Gitlab repository. It is only used, if `branch` is undefined. Uses `master` as default
+        skipForkedRepos: false # Optional. If the project is a fork, skip repository
         group: example-group # Optional. Group and subgroup (if needed) to look for repositories. If not present the whole instance will be scanned
         entityFilename: catalog-info.yaml # Optional. Defaults to `catalog-info.yaml`
         projectPattern: '[\s\S]*' # Optional. Filters found projects based on provided patter. Defaults to `[\s\S]*`, which means to not filter anything
@@ -38,7 +39,7 @@ the gitlab catalog plugin:
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-catalog-backend-module-gitlab
+yarn --cwd packages/backend add @backstage/plugin-catalog-backend-module-gitlab
 ```
 
 Once you've done that, you'll also need to add the segment below to `packages/backend/src/plugins/catalog.ts`:

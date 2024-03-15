@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { Box, Button, makeStyles } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
+import { makeStyles } from '@material-ui/core/styles';
 import {
   InfoCard,
   Progress,
@@ -23,11 +25,9 @@ import {
   ErrorPanel,
 } from '@backstage/core-components';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { useProjectRepoFromEntity } from '../../hooks';
-import { useApi } from '@backstage/core-plugin-api';
 import React from 'react';
-import { azureDevOpsApiRef } from '../../api';
-import useAsync from 'react-use/lib/useAsync';
+
+import { useReadme } from '../../hooks';
 
 const useStyles = makeStyles(theme => ({
   readMe: {
@@ -63,7 +63,7 @@ function isNotFoundError(error: any): boolean {
 }
 
 const ReadmeCardError = ({ error }: ErrorProps) => {
-  if (isNotFoundError(error))
+  if (isNotFoundError(error)) {
     return (
       <EmptyState
         title="No README available for this entity"
@@ -80,23 +80,14 @@ const ReadmeCardError = ({ error }: ErrorProps) => {
         }
       />
     );
+  }
   return <ErrorPanel title={error.message} error={error} />;
 };
 
 export const ReadmeCard = (props: Props) => {
   const classes = useStyles();
-  const api = useApi(azureDevOpsApiRef);
   const { entity } = useEntity();
-  const { project, repo } = useProjectRepoFromEntity(entity);
-
-  const { loading, error, value } = useAsync(
-    () =>
-      api.getReadme({
-        project,
-        repo,
-      }),
-    [api, project, repo, entity],
-  );
+  const { loading, error, item: value } = useReadme(entity);
 
   if (loading) {
     return <Progress />;

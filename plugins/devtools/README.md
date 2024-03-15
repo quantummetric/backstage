@@ -14,7 +14,7 @@ Lists helpful information about your current running Backstage instance such as:
 
 #### Backstage Version Reporting
 
-The Backstage Version that is reported requires `backstage.json` to be present at the root of the running backstage instance.  
+The Backstage Version that is reported requires `backstage.json` to be present at the root of the running backstage instance.
 You may need to modify your Dockerfile to ensure `backstage.json` is copied into the `WORKDIR` of your image.
 
 ```sh
@@ -66,7 +66,7 @@ To setup the DevTools frontend you'll need to do the following steps:
 
    ```sh
    # From your Backstage root directory
-   yarn add --cwd packages/app @backstage/plugin-devtools
+   yarn --cwd packages/app add @backstage/plugin-devtools
    ```
 
 2. Now open the `packages/app/src/App.tsx` file
@@ -206,11 +206,11 @@ To use the permission framework to secure the DevTools sidebar option you'll wan
 
    ```sh
    # From your Backstage root directory
-   yarn add --cwd packages/app @backstage/plugin-devtools-common
+   yarn --cwd packages/app add @backstage/plugin-devtools-common
    ```
 
 2. Then open the `packages/app/src/components/Root/Root.tsx` file
-3. The add these imports after all the existing import statements:
+3. Then add these imports after all the existing import statements:
 
    ```ts
    import { devToolsAdministerPermission } from '@backstage/plugin-devtools-common';
@@ -236,7 +236,7 @@ To use the permission framework to secure the DevTools route you'll want to do t
 
    ```sh
    # From your Backstage root directory
-   yarn add --cwd packages/app @backstage/plugin-devtools-common
+   yarn --cwd packages/app add @backstage/plugin-devtools-common
    ```
 
 2. Then open the `packages/app/src/App.tsx` file
@@ -341,7 +341,7 @@ To use this policy you'll need to make sure to add the `@backstage/plugin-devtoo
 
 ```sh
 # From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-devtools-common
+yarn --cwd packages/backend add @backstage/plugin-devtools-common
 ```
 
 You'll also need to add these imports:
@@ -408,11 +408,25 @@ export const customDevToolsPage = <DevToolsPage />;
 
 ## Configuration
 
-The following sections outline the configuration for the DevTools plugin
+The following sections outline the configuration for the DevTools plugin.
+
+### Package Dependencies
+
+By default, only packages with names starting with `@backstage` and `@internal` will be listed on the main "Info" tab. If you would like additional packages to be listed, you can specify the package prefixes (not regular expressions) in your `app-config.yaml`. For example, to not only provide version information about backstage plugins provided by the core application (`@backstage/*` modules) but also `@roadiehq` and `@spotify` plugins, you can specify this configuration:
+
+```yaml
+devTools:
+  info:
+    packagePrefixes:
+      # Note that you MUST have quotes around these. The YAML won't be valid
+      # if you don't, because of the leading at-symbols.
+      - '@roadiehq/backstage-'
+      - '@spotify/backstage-'
+```
 
 ### External Dependencies Configuration
 
-If you decide to use the External Dependencies tab then you'll need to setup the configuration for it in your `app-config.yaml`, if there is no config setup then the tab will be empty. Here's an example:
+If you decide to use the External Dependencies tab then you'll need to setup the configuration for it in your `app-config.yaml`. If there is no endpoints configured, then the tab will be empty. Here's an example:
 
 ```yaml
 devTools:

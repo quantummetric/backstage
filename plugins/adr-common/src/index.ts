@@ -21,6 +21,7 @@ import { Entity, getEntitySourceLocation } from '@backstage/catalog-model';
 import { IndexableDocument } from '@backstage/plugin-search-common';
 import { ScmIntegrationRegistry } from '@backstage/integration';
 import frontMatter from 'front-matter';
+import { DateTime } from 'luxon';
 
 /**
  * ADR plugin annotation.
@@ -56,13 +57,20 @@ export const isAdrAvailable = (entity: Entity) =>
 export const getAdrLocationUrl = (
   entity: Entity,
   scmIntegration: ScmIntegrationRegistry,
+  adrFilePath?: String,
 ) => {
   if (!isAdrAvailable(entity)) {
     throw new Error(`Missing ADR annotation: ${ANNOTATION_ADR_LOCATION}`);
   }
 
+  let url = getAdrLocationDir(entity)!.replace(/\/$/, '');
+
+  if (adrFilePath) {
+    url = `${url}/${adrFilePath}`;
+  }
+
   return scmIntegration.resolveUrl({
-    url: getAdrLocationDir(entity)!,
+    url,
     base: getEntitySourceLocation(entity).target,
   });
 };
@@ -135,10 +143,12 @@ export const parseMadrWithFrontmatter = (content: string): ParsedMadr => {
   const parsed = frontMatter<Record<string, unknown>>(content);
   const status = parsed.attributes.status;
   const date = parsed.attributes.date;
+  const luxdate = DateTime.fromJSDate(new Date(`${date}`));
+  const formattedDate = luxdate.toISODate();
   return {
     content: parsed.body,
     status: status ? String(status) : undefined,
-    date: date ? String(date) : undefined,
+    date: date ? String(formattedDate) : undefined,
     attributes: parsed.attributes,
   };
 };

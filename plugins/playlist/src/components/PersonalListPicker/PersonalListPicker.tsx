@@ -21,17 +21,14 @@ import {
   useApi,
 } from '@backstage/core-plugin-api';
 import { Playlist } from '@backstage/plugin-playlist-common';
-import {
-  Card,
-  List,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  ListItemText,
-  makeStyles,
-  MenuItem,
-  Theme,
-  Typography,
-} from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import List from '@material-ui/core/List';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { compact } from 'lodash';
@@ -41,12 +38,18 @@ import useAsync from 'react-use/lib/useAsync';
 import { usePlaylistList } from '../../hooks';
 import { PlaylistFilter } from '../../types';
 
+/**
+ * @public
+ */
 export const enum PersonalListFilterValue {
   owned = 'owned',
   following = 'following',
   all = 'all',
 }
 
+/**
+ * @public
+ */
 export class PersonalListFilter implements PlaylistFilter {
   constructor(
     readonly value: PersonalListFilterValue,
@@ -69,7 +72,7 @@ export class PersonalListFilter implements PlaylistFilter {
   }
 }
 
-const useStyles = makeStyles<Theme>(theme => ({
+const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: 'rgba(0, 0, 0, .11)',
     boxShadow: 'none',
@@ -131,6 +134,9 @@ function getFilterGroups(orgName: string | undefined): ButtonGroup[] {
   ];
 }
 
+/**
+ * @public
+ */
 export const PersonalListPicker = () => {
   const classes = useStyles();
   const configApi = useApi(configApiRef);
@@ -261,7 +267,6 @@ export const PersonalListPicker = () => {
                 <MenuItem
                   role="none presentation"
                   key={item.id}
-                  button
                   divider
                   onClick={() => setSelectedPersonalFilter(item.id)}
                   selected={item.id === selectedPersonalFilter}

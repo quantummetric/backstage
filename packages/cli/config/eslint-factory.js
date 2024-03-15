@@ -66,7 +66,7 @@ function createConfig(dir, extraConfig = {}) {
       ...(extraExtends ?? []),
     ],
     parser: '@typescript-eslint/parser',
-    plugins: ['import', ...(plugins ?? [])],
+    plugins: ['import', 'unused-imports', ...(plugins ?? [])],
     env: {
       jest: true,
       ...env,
@@ -165,6 +165,23 @@ function createConfig(dir, extraConfig = {}) {
           ],
         },
       },
+      {
+        files: ['**/src/generated/**/*.ts'],
+        rules: {
+          ...tsRules,
+          'no-unused-vars': 'off',
+          'unused-imports/no-unused-imports': 'error',
+          'unused-imports/no-unused-vars': [
+            'warn',
+            {
+              vars: 'all',
+              varsIgnorePattern: '^_',
+              args: 'none',
+              argsIgnorePattern: '^_',
+            },
+          ],
+        },
+      },
       ...(overrides ?? []),
     ],
   };
@@ -203,7 +220,7 @@ function createConfigForRole(dir, role, extraConfig = {}) {
         },
         restrictedImports: [
           {
-            // Importing the entire MUI icons packages impedes build performance as the list of icons is huge.
+            // Importing the entire Material UI icons packages impedes build performance as the list of icons is huge.
             name: '@material-ui/icons',
             message: "Please import '@material-ui/icons/<Icon>' instead.",
           },

@@ -17,13 +17,15 @@ import { UrlReader } from '@backstage/backend-common';
 import { Entity } from '@backstage/catalog-model';
 import { ConfigReader } from '@backstage/config';
 import { ScmIntegrations } from '@backstage/integration';
-import { CatalogProcessorResult } from '@backstage/plugin-catalog-node';
 import {
-  jsonPlaceholderResolver,
-  PlaceholderProcessor,
+  CatalogProcessorResult,
   PlaceholderResolver,
   PlaceholderResolverParams,
   PlaceholderResolverRead,
+} from '@backstage/plugin-catalog-node';
+import {
+  jsonPlaceholderResolver,
+  PlaceholderProcessor,
   textPlaceholderResolver,
   yamlPlaceholderResolver,
 } from './PlaceholderProcessor';
@@ -372,7 +374,7 @@ describe('PlaceholderProcessor', () => {
         () => {},
       ),
     ).rejects.toThrow(
-      /^Placeholder \$text could not form a URL out of \.\/a\/b\/catalog-info\.yaml and \.\.\/c\/catalog-info\.yaml, TypeError \[ERR_INVALID_URL\]/,
+      /^Placeholder \$text could not form a URL out of \.\/a\/b\/catalog-info\.yaml and \.\.\/c\/catalog-info\.yaml, TypeError/,
     );
 
     expect(reader.readUrl).not.toHaveBeenCalled();
@@ -518,7 +520,7 @@ describe('jsonPlaceholderResolver', () => {
   it('rejects invalid json', async () => {
     read.mockResolvedValue(Buffer.from('}', 'utf-8'));
     await expect(jsonPlaceholderResolver(params)).rejects.toThrow(
-      'Placeholder $a failed to parse JSON data at ./file.json, SyntaxError: Unexpected token } in JSON at position 0',
+      'Placeholder $a failed to parse JSON data at ./file.json',
     );
   });
 });

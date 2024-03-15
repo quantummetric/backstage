@@ -35,7 +35,9 @@ import {
 import {
   CACHE_CONTROL_MAX_CACHE,
   CACHE_CONTROL_NO_CACHE,
+  CACHE_CONTROL_REVALIDATE_CACHE,
 } from '../lib/headers';
+import { ConfigSchema } from '@backstage/config-loader';
 
 // express uses mime v1 while we only have types for mime v2
 type Mime = { lookup(arg0: string): string };
@@ -84,6 +86,13 @@ export interface RouterOptions {
    * This also disables configuration injection though `APP_CONFIG_` environment variables.
    */
   disableConfigInjection?: boolean;
+
+  /**
+   *
+   * Provides a ConfigSchema.
+   *
+   */
+  schema?: ConfigSchema;
 }
 
 /** @public */
@@ -91,6 +100,13 @@ export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
   const { config, logger, appPackageName, staticFallbackHandler } = options;
+
+  const disableConfigInjection =
+    options.disableConfigInjection ??
+    config.getOptionalBoolean('app.disableConfigInjection');
+  const disableStaticFallbackCache = config.getOptionalBoolean(
+    'app.disableStaticFallbackCache',
+  );
 
   const appDistDir = resolvePackagePath(appPackageName, 'dist');
   const staticDir = resolvePath(appDistDir, 'static');
@@ -107,14 +123,16 @@ export async function createRouter(
 
   logger.info(`Serving static app content from ${appDistDir}`);
 
-  if (!options.disableConfigInjection) {
+  let injectedConfigPath: string | undefined;
+  if (!disableConfigInjection) {
     const appConfigs = await readConfigs({
       config,
       appDistDir,
       env: process.env,
+      schema: options.schema,
     });
 
-    await injectConfig({ appConfigs, logger, staticDir });
+    injectedConfigPath = await injectConfig({ appConfigs, logger, staticDir });
   }
 
   const router = Router();
@@ -125,13 +143,17 @@ export async function createRouter(
   const staticRouter = Router();
   staticRouter.use(
     express.static(resolvePath(appDistDir, 'static'), {
-      setHeaders: res => {
-        res.setHeader('Cache-Control', CACHE_CONTROL_MAX_CACHE);
+      setHeaders: (res, path) => {
+        if (path === injectedConfigPath) {
+          res.setHeader('Cache-Control', CACHE_CONTROL_REVALIDATE_CACHE);
+        } else {
+          res.setHeader('Cache-Control', CACHE_CONTROL_MAX_CACHE);
+        }
       },
     }),
   );
 
-  if (options.database) {
+  if (options.database && !disableStaticFallbackCache) {
     const store = await StaticAssetsStore.create({
       logger,
       database: options.database,

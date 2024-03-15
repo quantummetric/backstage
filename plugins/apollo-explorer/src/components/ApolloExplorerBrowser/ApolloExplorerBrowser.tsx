@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import React, { useState } from 'react';
-import { Divider, makeStyles, Tab, Tabs } from '@material-ui/core';
-import { BackstageTheme } from '@backstage/theme';
+import Divider from '@material-ui/core/Divider';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import { makeStyles } from '@material-ui/core/styles';
 import { JSONObject } from '@apollo/explorer/src/helpers/types';
 import { ApolloExplorer } from '@apollo/explorer/react';
 import { Content } from '@backstage/core-components';
 
-const useStyles = makeStyles<BackstageTheme>(theme => ({
+const useStyles = makeStyles(theme => ({
   tabs: {
     background: theme.palette.background.paper,
   },

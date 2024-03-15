@@ -12,15 +12,17 @@ import { BuildRunOptions } from '@backstage/plugin-azure-devops-common';
 import { DashboardPullRequest } from '@backstage/plugin-azure-devops-common';
 import { DiscoveryApi } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
+import { FetchApi } from '@backstage/core-plugin-api';
 import { GitTag } from '@backstage/plugin-azure-devops-common';
-import { IdentityApi } from '@backstage/core-plugin-api';
+import { JSX as JSX_2 } from 'react';
 import { PullRequest } from '@backstage/plugin-azure-devops-common';
 import { PullRequestOptions } from '@backstage/plugin-azure-devops-common';
+import { default as React_2 } from 'react';
 import { Readme } from '@backstage/plugin-azure-devops-common';
 import { ReadmeConfig } from '@backstage/plugin-azure-devops-common';
 import { RepoBuild } from '@backstage/plugin-azure-devops-common';
 import { RepoBuildOptions } from '@backstage/plugin-azure-devops-common';
-import { SvgIconProps } from '@material-ui/core';
+import { SvgIconProps } from '@material-ui/core/SvgIcon';
 import { Team } from '@backstage/plugin-azure-devops-common';
 
 // @public (undocumented)
@@ -67,8 +69,11 @@ export interface AzureDevOpsApi {
   // (undocumented)
   getBuildRuns(
     projectName: string,
+    entityRef: string,
     repoName?: string,
     definitionName?: string,
+    host?: string,
+    org?: string,
     options?: BuildRunOptions,
   ): Promise<{
     items: BuildRun[];
@@ -81,6 +86,9 @@ export interface AzureDevOpsApi {
   getGitTags(
     projectName: string,
     repoName: string,
+    entityRef: string,
+    host?: string,
+    org?: string,
   ): Promise<{
     items: GitTag[];
   }>;
@@ -88,6 +96,9 @@ export interface AzureDevOpsApi {
   getPullRequests(
     projectName: string,
     repoName: string,
+    entityRef: string,
+    host?: string,
+    org?: string,
     options?: PullRequestOptions,
   ): Promise<{
     items: PullRequest[];
@@ -98,6 +109,8 @@ export interface AzureDevOpsApi {
   getRepoBuilds(
     projectName: string,
     repoName: string,
+    host?: string,
+    org?: string,
     options?: RepoBuildOptions,
   ): Promise<{
     items: RepoBuild[];
@@ -111,17 +124,17 @@ export const azureDevOpsApiRef: ApiRef<AzureDevOpsApi>;
 
 // @public (undocumented)
 export class AzureDevOpsClient implements AzureDevOpsApi {
-  constructor(options: {
-    discoveryApi: DiscoveryApi;
-    identityApi: IdentityApi;
-  });
+  constructor(options: { discoveryApi: DiscoveryApi; fetchApi: FetchApi });
   // (undocumented)
   getAllTeams(): Promise<Team[]>;
   // (undocumented)
   getBuildRuns(
     projectName: string,
+    entityRef: string,
     repoName?: string,
     definitionName?: string,
+    host?: string,
+    org?: string,
     options?: BuildRunOptions,
   ): Promise<{
     items: BuildRun[];
@@ -134,6 +147,9 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
   getGitTags(
     projectName: string,
     repoName: string,
+    entityRef: string,
+    host?: string,
+    org?: string,
   ): Promise<{
     items: GitTag[];
   }>;
@@ -141,6 +157,9 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
   getPullRequests(
     projectName: string,
     repoName: string,
+    entityRef: string,
+    host?: string,
+    org?: string,
     options?: PullRequestOptions,
   ): Promise<{
     items: PullRequest[];
@@ -151,6 +170,8 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
   getRepoBuilds(
     projectName: string,
     repoName: string,
+    host?: string,
+    org?: string,
     options?: RepoBuildOptions,
   ): Promise<{
     items: RepoBuild[];
@@ -160,17 +181,19 @@ export class AzureDevOpsClient implements AzureDevOpsApi {
 }
 
 // @public (undocumented)
-export const azureDevOpsPlugin: BackstagePlugin<{}, {}, {}>;
+export const azureDevOpsPlugin: BackstagePlugin<{}, {}>;
 
 // @public (undocumented)
-export const AzurePullRequestsIcon: (props: SvgIconProps) => JSX.Element;
+export const AzurePullRequestsIcon: (
+  props: SvgIconProps,
+) => React_2.JSX.Element;
 
 // @public (undocumented)
 export const AzurePullRequestsPage: (props: {
   projectName?: string | undefined;
   pollingInterval?: number | undefined;
   defaultColumnConfigs?: PullRequestColumnConfig[] | undefined;
-}) => JSX.Element;
+}) => JSX_2.Element;
 
 // @public (undocumented)
 export type BaseFilter = {
@@ -223,22 +246,22 @@ export type CreatedByUserFilter = BaseFilter &
   );
 
 // @public (undocumented)
-export const EntityAzureGitTagsContent: () => JSX.Element;
+export const EntityAzureGitTagsContent: () => JSX_2.Element;
 
 // @public (undocumented)
 export const EntityAzurePipelinesContent: (props: {
   defaultLimit?: number | undefined;
-}) => JSX.Element;
+}) => JSX_2.Element;
 
 // @public (undocumented)
 export const EntityAzurePullRequestsContent: (props: {
   defaultLimit?: number | undefined;
-}) => JSX.Element;
+}) => JSX_2.Element;
 
 // @public (undocumented)
 export const EntityAzureReadmeCard: (props: {
   maxHeight?: number | undefined;
-}) => JSX.Element;
+}) => JSX_2.Element;
 
 // @public (undocumented)
 export type Filter =

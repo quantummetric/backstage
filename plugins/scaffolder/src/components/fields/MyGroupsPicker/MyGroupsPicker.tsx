@@ -20,9 +20,10 @@ import {
   identityApiRef,
   useApi,
 } from '@backstage/core-plugin-api';
-import { TextField, FormControl } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
+import FormControl from '@material-ui/core/FormControl';
 import { MyGroupsPickerProps, MyGroupsPickerSchema } from './schema';
-import { Autocomplete } from '@material-ui/lab';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { NotFoundError } from '@backstage/errors';
 import useAsync from 'react-use/lib/useAsync';
@@ -62,7 +63,7 @@ export const MyGroupsPicker = (props: MyGroupsPickerProps) => {
 
     const { items } = await catalogApi.getEntities({
       filter: {
-        type: 'Group',
+        kind: 'Group',
         ['relations.hasMember']: [userEntityRef],
       },
     });

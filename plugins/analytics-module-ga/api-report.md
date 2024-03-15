@@ -4,17 +4,19 @@
 
 ```ts
 import { AnalyticsApi } from '@backstage/core-plugin-api';
+import { AnalyticsApi as AnalyticsApi_2 } from '@backstage/frontend-plugin-api';
 import { AnalyticsEvent } from '@backstage/core-plugin-api';
+import { AnalyticsEvent as AnalyticsEvent_2 } from '@backstage/frontend-plugin-api';
 import { BackstagePlugin } from '@backstage/core-plugin-api';
 import { Config } from '@backstage/config';
 import { IdentityApi } from '@backstage/core-plugin-api';
 
 // @public @deprecated (undocumented)
-export const analyticsModuleGA: BackstagePlugin<{}, {}, {}>;
+export const analyticsModuleGA: BackstagePlugin<{}, {}>;
 
 // @public
-export class GoogleAnalytics implements AnalyticsApi {
-  captureEvent(event: AnalyticsEvent): void;
+export class GoogleAnalytics implements AnalyticsApi, AnalyticsApi_2 {
+  captureEvent(event: AnalyticsEvent | AnalyticsEvent_2): void;
   static fromConfig(
     config: Config,
     options?: {

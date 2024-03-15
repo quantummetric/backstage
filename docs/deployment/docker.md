@@ -16,7 +16,7 @@ are stateless, so for a production deployment you will want to set up and
 connect to an external PostgreSQL instance where the backend plugins can store
 their state, rather than using SQLite.
 
-This section assumes that an [app](https://backstage.io/docs/getting-started/create-an-app)
+This section assumes that an [app](https://backstage.io/docs/getting-started/standalone-install)
 has already been created with `@backstage/create-app`, in which the frontend is
 bundled and served from the backend. This is done using the
 `@backstage/plugin-app-backend` plugin, which also injects the frontend
@@ -37,7 +37,7 @@ The required steps in the host build are to install dependencies with
 `yarn install`, generate type definitions using `yarn tsc`, and build the backend
 package with `yarn build:backend`.
 
-In a CI workflow it might look something like this:
+In a CI workflow it might look something like this, from the root:
 
 ```bash
 yarn install --frozen-lockfile
@@ -47,29 +47,37 @@ yarn tsc
 
 # Build the backend, which bundles it all up into the packages/backend/dist folder.
 # The configuration files here should match the one you use inside the Dockerfile below.
-yarn build:backend --config app-config.yaml
+yarn build:backend --config ../../app-config.yaml
 ```
 
 Once the host build is complete, we are ready to build our image. The following
 `Dockerfile` is included when creating a new app with `@backstage/create-app`:
 
-```Dockerfile
-FROM node:16-bullseye-slim
+```dockerfile
+FROM node:18-bookworm-slim
+
+# Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3 g++ build-essential && \
+    yarn config set python /usr/bin/python3
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev python3 build-essential && \
-    yarn config set python /usr/bin/python3
+    apt-get install -y --no-install-recommends libsqlite3-dev
 
 # From here on we use the least-privileged `node` user to run the backend.
 USER node
 
 # This should create the app dir as `node`.
-# If it is instead created as `root` then the `tar` command below will fail: `can't create directory 'packages/': Permission denied`.
-# If this occurs, then ensure BuildKit is enabled (`DOCKER_BUILDKIT=1`) so the app dir is correctly created as `node`.
+# If it is instead created as `root` then the `tar` command below will
+# fail: `can't create directory 'packages/': Permission denied`.
+# If this occurs, then ensure BuildKit is enabled (`DOCKER_BUILDKIT=1`)
+# so the app dir is correctly created as `node`.
 WORKDIR /app
 
 # This switches many Node.js dependencies to production mode.
@@ -152,9 +160,9 @@ host build.
 The following `Dockerfile` executes the multi-stage build and should be added to
 the repo root:
 
-```Dockerfile
+```dockerfile
 # Stage 1 - Create yarn install skeleton layer
-FROM node:16-bullseye-slim AS packages
+FROM node:18-bookworm-slim AS packages
 
 WORKDIR /app
 COPY package.json yarn.lock ./
@@ -167,22 +175,27 @@ COPY plugins plugins
 RUN find packages \! -name "package.json" -mindepth 2 -maxdepth 2 -exec rm -rf {} \+
 
 # Stage 2 - Install dependencies and build packages
-FROM node:16-bullseye-slim AS build
+FROM node:18-bookworm-slim AS build
 
-# install sqlite3 dependencies
+# Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev python3 build-essential && \
+    apt-get install -y --no-install-recommends python3 g++ build-essential && \
     yarn config set python /usr/bin/python3
+
+# Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
+# in which case you should also move better-sqlite3 to "devDependencies" in package.json.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends libsqlite3-dev
 
 USER node
 WORKDIR /app
 
 COPY --from=packages --chown=node:node /app .
 
-# Stop cypress from downloading it's massive binary.
-ENV CYPRESS_INSTALL_BINARY=0
 RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
     yarn install --frozen-lockfile --network-timeout 600000
 
@@ -198,22 +211,30 @@ RUN mkdir packages/backend/dist/skeleton packages/backend/dist/bundle \
     && tar xzf packages/backend/dist/bundle.tar.gz -C packages/backend/dist/bundle
 
 # Stage 3 - Build the actual backend image and install production dependencies
-FROM node:16-bullseye-slim
+FROM node:18-bookworm-slim
+
+# Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3 g++ build-essential && \
+    yarn config set python /usr/bin/python3
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
 # in which case you should also move better-sqlite3 to "devDependencies" in package.json.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends libsqlite3-dev python3 build-essential && \
-    yarn config set python /usr/bin/python3
+    apt-get install -y --no-install-recommends libsqlite3-dev
 
 # From here on we use the least-privileged `node` user to run the backend.
 USER node
 
 # This should create the app dir as `node`.
-# If it is instead created as `root` then the `tar` command below will fail: `can't create directory 'packages/': Permission denied`.
-# If this occurs, then ensure BuildKit is enabled (`DOCKER_BUILDKIT=1`) so the app dir is correctly created as `node`.
+# If it is instead created as `root` then the `tar` command below will
+# fail: `can't create directory 'packages/': Permission denied`.
+# If this occurs, then ensure BuildKit is enabled (`DOCKER_BUILDKIT=1`)
+# so the app dir is correctly created as `node`.
 WORKDIR /app
 
 # Copy the install dependencies from the build stage and context
@@ -292,7 +313,7 @@ package, which is done as follows:
        .addRouter('', await app(appEnv));
    ```
 3. Remove the `@backstage/plugin-app-backend` and the app package dependency
-   (e.g. `app`) from `packages/backend/packages.json`. If you don't remove the
+   (e.g. `app`) from `packages/backend/package.json`. If you don't remove the
    app package dependency the app will still be built and bundled with the
    backend.
 
@@ -304,3 +325,16 @@ an NGINX image is available in the
 Note that if you're building a separate docker build of the frontend you
 probably need to adjust `.dockerignore` appropriately. Most likely by making
 sure `packages/app/dist` is not ignored.
+
+## Troubleshooting Tips
+
+When building Docker images you may run into problems from time to time, there are two handy flags you can use to help:
+
+- `--progress=plain`: this will give you a more verbose output and not fold the logs into sections. This is very useful when have an error but it just shows you the last command and possibly an exit code. Using this flag you are more likely to see where the error actually is.
+- `--no-cache`: this will rebuild all the layers every time. This is helpful when you want to be sure that it's building from scratch.
+
+Here's an example of these flags in use:
+
+```sh
+docker image build . -f packages/backend/Dockerfile --tag backstage --progress=plain --no-cache
+```

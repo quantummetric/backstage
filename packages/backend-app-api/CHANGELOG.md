@@ -1,5 +1,657 @@
 # @backstage/backend-app-api
 
+## 0.6.0-next.2
+
+### Patch Changes
+
+- 15fda44: Provide some sane defaults for `WinstonLogger.create` making some of the arguments optional
+- 9d91128: Add the possibility to disable watching files in the new backend system
+- Updated dependencies
+  - @backstage/backend-common@0.21.4-next.2
+  - @backstage/plugin-auth-node@0.4.9-next.2
+  - @backstage/backend-plugin-api@0.6.14-next.2
+  - @backstage/backend-tasks@0.5.19-next.2
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.4-next.0
+  - @backstage/config@1.2.0-next.1
+  - @backstage/config-loader@1.7.0-next.1
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-node@0.7.25-next.2
+
+## 0.6.0-next.1
+
+### Patch Changes
+
+- 81e0120: Fixed an issue where configuration schema for the purpose of redacting secrets from logs was not being read correctly.
+- f235ca7: Make sure to not filter out schemas in `createConfigSecretEnumerator`
+- Updated dependencies
+  - @backstage/config@1.2.0-next.1
+  - @backstage/config-loader@1.7.0-next.1
+  - @backstage/backend-common@0.21.4-next.1
+  - @backstage/backend-plugin-api@0.6.14-next.1
+  - @backstage/backend-tasks@0.5.19-next.1
+  - @backstage/plugin-auth-node@0.4.9-next.1
+  - @backstage/plugin-permission-node@0.7.25-next.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.4-next.0
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/types@1.1.1
+
+## 0.6.0-next.0
+
+### Minor Changes
+
+- 4a3d434: **BREAKING**: For users that have migrated to the new backend system, incoming requests will now be rejected if they are not properly authenticated (e.g. with a Backstage bearer token or a backend token). Please see the [Auth Service Migration tutorial](https://backstage.io/docs/tutorials/auth-service-migration) for more information on how to circumvent this behavior in the short term and how to properly leverage it in the longer term.
+
+  Added service factories for the new [`auth`](https://backstage.io/docs/backend-system/core-services/auth/), [`httpAuth`](https://backstage.io/docs/backend-system/core-services/http-auth), and [`userInfo`](https://backstage.io/docs/backend-system/core-services/user-info) services that were created as part of [BEP-0003](https://github.com/backstage/backstage/tree/master/beps/0003-auth-architecture-evolution).
+
+### Patch Changes
+
+- 999224f: Bump dependency `minimatch` to v9
+- 0502d82: Updated the `permissionsServiceFactory` to forward the `AuthService` to the implementation.
+- 9802004: Made the `DefaultUserInfoService` claims check stricter
+- Updated dependencies
+  - @backstage/backend-common@0.21.3-next.0
+  - @backstage/plugin-auth-node@0.4.8-next.0
+  - @backstage/errors@1.2.4-next.0
+  - @backstage/backend-plugin-api@0.6.13-next.0
+  - @backstage/backend-tasks@0.5.18-next.0
+  - @backstage/plugin-permission-node@0.7.24-next.0
+  - @backstage/cli-node@0.2.4-next.0
+  - @backstage/config-loader@1.6.3-next.0
+  - @backstage/config@1.1.2-next.0
+  - @backstage/cli-common@0.1.13
+  - @backstage/types@1.1.1
+
+## 0.5.11
+
+### Patch Changes
+
+- e0c18ef: Include the extension point ID and the module ID in the backend init error message.
+- 7ae5704: Updated the default error handling middleware to filter out certain known error types that should never be returned in responses. The errors are instead logged along with a correlation ID, which is also returned in the response. Initially only PostgreSQL protocol errors from the `pg-protocol` package are filtered out.
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- 54ad8e1: Allow the `createConfigSecretEnumerator` to take an optional `schema` argument with an already-loaded global configuration schema.
+- 6bb6f3e: Updated dependency `fs-extra` to `^11.2.0`.
+  Updated dependency `@types/fs-extra` to `^11.0.0`.
+- Updated dependencies
+  - @backstage/backend-common@0.21.0
+  - @backstage/plugin-auth-node@0.4.4
+  - @backstage/cli-node@0.2.3
+  - @backstage/backend-plugin-api@0.6.10
+  - @backstage/backend-tasks@0.5.15
+  - @backstage/config-loader@1.6.2
+  - @backstage/plugin-permission-node@0.7.21
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.11-next.3
+
+### Patch Changes
+
+- 54ad8e1: Allow the `createConfigSecretEnumerator` to take an optional `schema` argument with an already-loaded global configuration schema.
+- Updated dependencies
+  - @backstage/backend-common@0.21.0-next.3
+  - @backstage/cli-node@0.2.3-next.0
+  - @backstage/backend-tasks@0.5.15-next.3
+  - @backstage/config-loader@1.6.2-next.0
+  - @backstage/plugin-auth-node@0.4.4-next.3
+  - @backstage/plugin-permission-node@0.7.21-next.3
+  - @backstage/backend-plugin-api@0.6.10-next.3
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.11-next.2
+
+### Patch Changes
+
+- 9aac2b0: Use `--cwd` as the first `yarn` argument
+- Updated dependencies
+  - @backstage/backend-common@0.21.0-next.2
+  - @backstage/backend-plugin-api@0.6.10-next.2
+  - @backstage/backend-tasks@0.5.15-next.2
+  - @backstage/plugin-auth-node@0.4.4-next.2
+  - @backstage/plugin-permission-node@0.7.21-next.2
+  - @backstage/config@1.1.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.2
+  - @backstage/config-loader@1.6.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.11-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-plugin-api@0.6.10-next.1
+  - @backstage/backend-common@0.21.0-next.1
+  - @backstage/backend-tasks@0.5.15-next.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.2
+  - @backstage/config@1.1.1
+  - @backstage/config-loader@1.6.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.4.4-next.1
+  - @backstage/plugin-permission-node@0.7.21-next.1
+
+## 0.5.11-next.0
+
+### Patch Changes
+
+- e0c18ef: Include the extension point ID and the module ID in the backend init error message.
+- Updated dependencies
+  - @backstage/backend-common@0.21.0-next.0
+  - @backstage/backend-tasks@0.5.15-next.0
+  - @backstage/cli-node@0.2.2
+  - @backstage/config-loader@1.6.1
+  - @backstage/plugin-auth-node@0.4.4-next.0
+  - @backstage/plugin-permission-node@0.7.21-next.0
+  - @backstage/backend-plugin-api@0.6.10-next.0
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.10
+
+### Patch Changes
+
+- 516fd3e: Updated README to reflect release status
+- Updated dependencies
+  - @backstage/backend-common@0.20.1
+  - @backstage/config-loader@1.6.1
+  - @backstage/cli-node@0.2.2
+  - @backstage/backend-plugin-api@0.6.9
+  - @backstage/plugin-permission-node@0.7.20
+  - @backstage/backend-tasks@0.5.14
+  - @backstage/plugin-auth-node@0.4.3
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.10-next.2
+
+### Patch Changes
+
+- 516fd3e: Updated README to reflect release status
+- Updated dependencies
+  - @backstage/backend-plugin-api@0.6.9-next.2
+  - @backstage/backend-common@0.20.1-next.2
+  - @backstage/plugin-auth-node@0.4.3-next.2
+  - @backstage/plugin-permission-node@0.7.20-next.2
+  - @backstage/backend-tasks@0.5.14-next.2
+  - @backstage/cli-node@0.2.2-next.0
+  - @backstage/config-loader@1.6.1-next.0
+
+## 0.5.10-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config-loader@1.6.1-next.0
+  - @backstage/cli-node@0.2.2-next.0
+  - @backstage/backend-common@0.20.1-next.1
+  - @backstage/config@1.1.1
+  - @backstage/backend-tasks@0.5.14-next.1
+  - @backstage/plugin-auth-node@0.4.3-next.1
+  - @backstage/plugin-permission-node@0.7.20-next.1
+  - @backstage/backend-plugin-api@0.6.9-next.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.10-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.20.1-next.0
+  - @backstage/backend-plugin-api@0.6.9-next.0
+  - @backstage/backend-tasks@0.5.14-next.0
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.1
+  - @backstage/config@1.1.1
+  - @backstage/config-loader@1.6.0
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.4.3-next.0
+  - @backstage/plugin-permission-node@0.7.20-next.0
+
+## 0.5.9
+
+### Patch Changes
+
+- 1da5f43: Ensure redaction of secrets that have accidental extra whitespace around them
+- 9f8f266: Add redacting for secrets in stack traces of logs
+- Updated dependencies
+  - @backstage/backend-common@0.20.0
+  - @backstage/config-loader@1.6.0
+  - @backstage/backend-tasks@0.5.13
+  - @backstage/plugin-auth-node@0.4.2
+  - @backstage/plugin-permission-node@0.7.19
+  - @backstage/cli-node@0.2.1
+  - @backstage/backend-plugin-api@0.6.8
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.9-next.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.20.0-next.3
+  - @backstage/backend-plugin-api@0.6.8-next.3
+  - @backstage/backend-tasks@0.5.13-next.3
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.0
+  - @backstage/config@1.1.1
+  - @backstage/config-loader@1.6.0-next.0
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.4.2-next.3
+  - @backstage/plugin-permission-node@0.7.19-next.3
+
+## 0.5.9-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config-loader@1.6.0-next.0
+  - @backstage/backend-common@0.20.0-next.2
+  - @backstage/plugin-auth-node@0.4.2-next.2
+  - @backstage/backend-plugin-api@0.6.8-next.2
+  - @backstage/backend-tasks@0.5.13-next.2
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.0
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-node@0.7.19-next.2
+
+## 0.5.9-next.1
+
+### Patch Changes
+
+- 1da5f434f3: Ensure redaction of secrets that have accidental extra whitespace around them
+- 9f8f266ff4: Add redacting for secrets in stack traces of logs
+- Updated dependencies
+  - @backstage/backend-common@0.20.0-next.1
+  - @backstage/backend-plugin-api@0.6.8-next.1
+  - @backstage/backend-tasks@0.5.13-next.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.0
+  - @backstage/config@1.1.1
+  - @backstage/config-loader@1.5.3
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.4.2-next.1
+  - @backstage/plugin-permission-node@0.7.19-next.1
+
+## 0.5.9-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.20.0-next.0
+  - @backstage/backend-tasks@0.5.13-next.0
+  - @backstage/plugin-auth-node@0.4.2-next.0
+  - @backstage/plugin-permission-node@0.7.19-next.0
+  - @backstage/backend-plugin-api@0.6.8-next.0
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.0
+  - @backstage/config@1.1.1
+  - @backstage/config-loader@1.5.3
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.8
+
+### Patch Changes
+
+- bc9a18d5ec: Added a workaround for double `default` wrapping when dynamically importing CommonJS modules with default exports.
+- Updated dependencies
+  - @backstage/config-loader@1.5.3
+  - @backstage/cli-node@0.2.0
+  - @backstage/backend-common@0.19.9
+  - @backstage/backend-plugin-api@0.6.7
+  - @backstage/backend-tasks@0.5.12
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.4.1
+  - @backstage/plugin-permission-node@0.7.18
+
+## 0.5.8-next.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-plugin-api@0.6.7-next.2
+  - @backstage/backend-common@0.19.9-next.2
+  - @backstage/backend-tasks@0.5.12-next.2
+  - @backstage/plugin-auth-node@0.4.1-next.2
+  - @backstage/plugin-permission-node@0.7.18-next.2
+  - @backstage/config-loader@1.5.3-next.0
+
+## 0.5.8-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.19.9-next.1
+  - @backstage/backend-tasks@0.5.12-next.1
+  - @backstage/config-loader@1.5.3-next.0
+  - @backstage/plugin-auth-node@0.4.1-next.1
+  - @backstage/plugin-permission-node@0.7.18-next.1
+  - @backstage/backend-plugin-api@0.6.7-next.1
+  - @backstage/cli-common@0.1.13
+  - @backstage/cli-node@0.2.0-next.0
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+
+## 0.5.8-next.0
+
+### Patch Changes
+
+- bc9a18d5ec: Added a workaround for double `default` wrapping when dynamically importing CommonJS modules with default exports.
+- Updated dependencies
+  - @backstage/config-loader@1.5.2-next.0
+  - @backstage/cli-node@0.2.0-next.0
+  - @backstage/backend-common@0.19.9-next.0
+  - @backstage/backend-plugin-api@0.6.7-next.0
+  - @backstage/backend-tasks@0.5.12-next.0
+  - @backstage/cli-common@0.1.13
+  - @backstage/config@1.1.1
+  - @backstage/errors@1.2.3
+  - @backstage/types@1.1.1
+  - @backstage/plugin-auth-node@0.4.1-next.0
+  - @backstage/plugin-permission-node@0.7.18-next.0
+
+## 0.5.6
+
+### Patch Changes
+
+- 74491c9602: Moved `HostDiscovery` from `@backstage/backend-common`.
+- a4617c422a: Added `watch` option to configuration loaders that can be used to disable file watching by setting it to `false`.
+- Updated dependencies
+  - @backstage/backend-tasks@0.5.11
+  - @backstage/backend-common@0.19.8
+  - @backstage/plugin-auth-node@0.4.0
+  - @backstage/config-loader@1.5.1
+  - @backstage/errors@1.2.3
+  - @backstage/cli-common@0.1.13
+  - @backstage/backend-plugin-api@0.6.6
+  - @backstage/plugin-permission-node@0.7.17
+  - @backstage/cli-node@0.1.5
+  - @backstage/config@1.1.1
+  - @backstage/types@1.1.1
+
+## 0.5.6-next.2
+
+### Patch Changes
+
+- 74491c9602: Moved `HostDiscovery` from `@backstage/backend-common`.
+- a4617c422a: Added `watch` option to configuration loaders that can be used to disable file watching by setting it to `false`.
+- Updated dependencies
+  - @backstage/backend-common@0.19.8-next.2
+  - @backstage/plugin-auth-node@0.4.0-next.2
+  - @backstage/config-loader@1.5.1-next.1
+  - @backstage/errors@1.2.3-next.0
+  - @backstage/backend-tasks@0.5.11-next.2
+  - @backstage/plugin-permission-node@0.7.17-next.2
+  - @backstage/backend-plugin-api@0.6.6-next.2
+  - @backstage/cli-common@0.1.13-next.0
+  - @backstage/cli-node@0.1.5-next.1
+  - @backstage/config@1.1.1-next.0
+  - @backstage/types@1.1.1
+
+## 0.5.5-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-tasks@0.5.10-next.1
+  - @backstage/backend-common@0.19.7-next.1
+  - @backstage/backend-plugin-api@0.6.5-next.1
+  - @backstage/plugin-auth-node@0.3.2-next.1
+  - @backstage/plugin-permission-node@0.7.16-next.1
+  - @backstage/config@1.1.0
+  - @backstage/cli-common@0.1.13-next.0
+  - @backstage/cli-node@0.1.5-next.0
+  - @backstage/config-loader@1.5.1-next.0
+  - @backstage/errors@1.2.2
+  - @backstage/types@1.1.1
+
+## 0.5.5-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-auth-node@0.3.2-next.0
+  - @backstage/config-loader@1.5.1-next.0
+  - @backstage/cli-common@0.1.13-next.0
+  - @backstage/backend-common@0.19.7-next.0
+  - @backstage/config@1.1.0
+  - @backstage/backend-plugin-api@0.6.5-next.0
+  - @backstage/backend-tasks@0.5.10-next.0
+  - @backstage/cli-node@0.1.5-next.0
+  - @backstage/errors@1.2.2
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-node@0.7.16-next.0
+
+## 0.5.3
+
+### Patch Changes
+
+- 154632d8753b: Add support for discovering additional service factories during startup.
+- 37a20c7f14aa: Adds include and exclude configuration to feature discovery of backend packages
+  Adds alpha modules to feature discovery
+- cb7fc410ed99: The experimental backend feature discovery now only considers default exports from packages. It no longer filters packages to include based on the package role, except that `'cli'` packages are ignored. However, the `"backstage"` field is still required in `package.json`.
+- 3fc64b9e2f8f: Extension points are now tracked via their ID rather than reference, in order to support package duplication.
+- 3b30b179cb38: Add support for installing features as package imports, for example `backend.add(import('my-plugin'))`.
+- b219d097b3f4: Backend startup will now fail if any circular service dependencies are detected.
+- Updated dependencies
+  - @backstage/backend-tasks@0.5.8
+  - @backstage/backend-common@0.19.5
+  - @backstage/plugin-auth-node@0.3.0
+  - @backstage/config@1.1.0
+  - @backstage/errors@1.2.2
+  - @backstage/types@1.1.1
+  - @backstage/plugin-permission-node@0.7.14
+  - @backstage/backend-plugin-api@0.6.3
+  - @backstage/config-loader@1.5.0
+  - @backstage/cli-common@0.1.12
+  - @backstage/cli-node@0.1.4
+
+## 0.5.3-next.3
+
+### Patch Changes
+
+- 154632d8753b: Add support for discovering additional service factories during startup.
+- cb7fc410ed99: The experimental backend feature discovery now only considers default exports from packages. It no longer filters packages to include based on the package role, except that `'cli'` packages are ignored. However, the `"backstage"` field is still required in `package.json`.
+- 3b30b179cb38: Add support for installing features as package imports, for example `backend.add(import('my-plugin'))`.
+- Updated dependencies
+  - @backstage/config@1.1.0-next.2
+  - @backstage/errors@1.2.2-next.0
+  - @backstage/types@1.1.1-next.0
+  - @backstage/plugin-permission-node@0.7.14-next.3
+  - @backstage/backend-plugin-api@0.6.3-next.3
+  - @backstage/backend-common@0.19.5-next.3
+  - @backstage/backend-tasks@0.5.8-next.3
+  - @backstage/cli-common@0.1.12
+  - @backstage/cli-node@0.1.4-next.0
+  - @backstage/config-loader@1.5.0-next.3
+  - @backstage/plugin-auth-node@0.3.0-next.3
+
+## 0.5.3-next.2
+
+### Patch Changes
+
+- 37a20c7f14aa: Adds include and exclude configuration to feature discovery of backend packages
+  Adds alpha modules to feature discovery
+- 3fc64b9e2f8f: Extension points are now tracked via their ID rather than reference, in order to support package duplication.
+- b219d097b3f4: Backend startup will now fail if any circular service dependencies are detected.
+- Updated dependencies
+  - @backstage/config-loader@1.5.0-next.2
+  - @backstage/config@1.1.0-next.1
+  - @backstage/backend-tasks@0.5.8-next.2
+  - @backstage/backend-common@0.19.5-next.2
+  - @backstage/plugin-auth-node@0.3.0-next.2
+  - @backstage/plugin-permission-node@0.7.14-next.2
+  - @backstage/backend-plugin-api@0.6.3-next.2
+  - @backstage/cli-common@0.1.12
+  - @backstage/cli-node@0.1.3
+  - @backstage/errors@1.2.1
+  - @backstage/types@1.1.0
+
+## 0.5.3-next.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config@1.1.0-next.0
+  - @backstage/backend-tasks@0.5.8-next.1
+  - @backstage/backend-common@0.19.5-next.1
+  - @backstage/backend-plugin-api@0.6.3-next.1
+  - @backstage/config-loader@1.5.0-next.1
+  - @backstage/plugin-auth-node@0.3.0-next.1
+  - @backstage/plugin-permission-node@0.7.14-next.1
+  - @backstage/cli-common@0.1.12
+  - @backstage/cli-node@0.1.3
+  - @backstage/errors@1.2.1
+  - @backstage/types@1.1.0
+
+## 0.5.2-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/plugin-auth-node@0.3.0-next.0
+  - @backstage/backend-common@0.19.4-next.0
+  - @backstage/config-loader@1.5.0-next.0
+  - @backstage/backend-tasks@0.5.7-next.0
+  - @backstage/backend-plugin-api@0.6.2-next.0
+  - @backstage/cli-common@0.1.12
+  - @backstage/cli-node@0.1.3
+  - @backstage/config@1.0.8
+  - @backstage/errors@1.2.1
+  - @backstage/types@1.1.0
+  - @backstage/plugin-permission-node@0.7.13-next.0
+
+## 0.5.0
+
+### Minor Changes
+
+- b9c57a4f857e: **BREAKING**: Renamed `configServiceFactory` to `rootConfigServiceFactory`.
+- a6d7983f349c: **BREAKING**: Removed the `services` option from `createBackend`. Service factories are now `BackendFeature`s and should be installed with `backend.add(...)` instead. The following should be migrated:
+
+  ```ts
+  const backend = createBackend({ services: [myCustomServiceFactory] });
+  ```
+
+  To instead pass the service factory via `backend.add(...)`:
+
+  ```ts
+  const backend = createBackend();
+  backend.add(customRootLoggerServiceFactory);
+  ```
+
+### Patch Changes
+
+- e65c4896f755: Do not throw in backend.stop, if start failed
+- c7aa4ff1793c: Allow modules to register extension points.
+- 57a10c6c69cc: Add validation to make sure that extension points do not cross plugin boundaries.
+- cc9256a33bcc: Added new experimental `featureDiscoveryServiceFactory`, available as an `/alpha` export.
+- Updated dependencies
+  - @backstage/backend-common@0.19.2
+  - @backstage/config-loader@1.4.0
+  - @backstage/backend-plugin-api@0.6.0
+  - @backstage/cli-node@0.1.3
+  - @backstage/plugin-auth-node@0.2.17
+  - @backstage/backend-tasks@0.5.5
+  - @backstage/plugin-permission-node@0.7.11
+  - @backstage/cli-common@0.1.12
+  - @backstage/config@1.0.8
+  - @backstage/errors@1.2.1
+  - @backstage/types@1.1.0
+
+## 0.5.0-next.2
+
+### Patch Changes
+
+- e65c4896f755: Do not throw in backend.stop, if start failed
+- cc9256a33bcc: Added new experimental `featureDiscoveryServiceFactory`, available as an `/alpha` export.
+- Updated dependencies
+  - @backstage/backend-plugin-api@0.6.0-next.2
+  - @backstage/backend-tasks@0.5.5-next.2
+  - @backstage/backend-common@0.19.2-next.2
+  - @backstage/plugin-permission-node@0.7.11-next.2
+  - @backstage/plugin-auth-node@0.2.17-next.2
+  - @backstage/config-loader@1.4.0-next.1
+
+## 0.5.0-next.1
+
+### Minor Changes
+
+- b9c57a4f857e: **BREAKING**: Renamed `configServiceFactory` to `rootConfigServiceFactory`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/backend-common@0.19.2-next.1
+  - @backstage/config-loader@1.4.0-next.1
+  - @backstage/plugin-auth-node@0.2.17-next.1
+  - @backstage/backend-plugin-api@0.6.0-next.1
+  - @backstage/backend-tasks@0.5.5-next.1
+  - @backstage/plugin-permission-node@0.7.11-next.1
+  - @backstage/cli-common@0.1.12
+  - @backstage/config@1.0.8
+  - @backstage/errors@1.2.1
+  - @backstage/types@1.1.0
+
+## 0.4.6-next.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/config-loader@1.4.0-next.0
+  - @backstage/backend-common@0.19.2-next.0
+  - @backstage/backend-plugin-api@0.5.5-next.0
+  - @backstage/backend-tasks@0.5.5-next.0
+  - @backstage/cli-common@0.1.12
+  - @backstage/config@1.0.8
+  - @backstage/errors@1.2.1
+  - @backstage/types@1.1.0
+  - @backstage/plugin-auth-node@0.2.17-next.0
+  - @backstage/plugin-permission-node@0.7.11-next.0
+
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @backstage/errors@1.2.1
+  - @backstage/backend-common@0.19.1
+  - @backstage/backend-plugin-api@0.5.4
+  - @backstage/backend-tasks@0.5.4
+  - @backstage/cli-common@0.1.12
+  - @backstage/config@1.0.8
+  - @backstage/config-loader@1.3.2
+  - @backstage/types@1.1.0
+  - @backstage/plugin-auth-node@0.2.16
+  - @backstage/plugin-permission-node@0.7.10
+
 ## 0.4.5-next.0
 
 ### Patch Changes

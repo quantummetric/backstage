@@ -20,7 +20,7 @@ Here's how to get the backend up and running:
 
 ```sh
 # From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-adr-backend
+yarn --cwd packages/backend add @backstage/plugin-adr-backend
 ```
 
 2. Then we will create a new file named `packages/backend/src/plugins/adr.ts`, and add the
@@ -57,6 +57,22 @@ async function main() {
 ```
 
 4. Now run `yarn start-backend` from the repo root
+
+### New Backend System
+
+The ADR backend plugin has support for the [new backend system](https://backstage.io/docs/backend-system/), here's how you can set that up:
+
+In your `packages/backend/src/index.ts` make the following changes:
+
+```diff
+  const backend = createBackend();
+
++ backend.add(import('@backstage/plugin-adr-backend'));
+
+// ... other feature additions
+
+  backend.start();
+```
 
 ## Indexing ADR documents for search
 

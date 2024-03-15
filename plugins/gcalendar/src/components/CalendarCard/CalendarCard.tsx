@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { sortBy } from 'lodash';
 import { DateTime } from 'luxon';
 import React, { useState } from 'react';
@@ -20,7 +21,9 @@ import React, { useState } from 'react';
 import { InfoCard, Progress } from '@backstage/core-components';
 import { useAnalytics } from '@backstage/core-plugin-api';
 
-import { Box, IconButton, Typography } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
 import PrevIcon from '@material-ui/icons/NavigateBefore';
 import NextIcon from '@material-ui/icons/NavigateNext';
 
@@ -67,9 +70,9 @@ export const CalendarCard = () => {
     calendars,
     selectedCalendars: storedCalendars,
     enabled: isSignedIn && calendars.length > 0,
-    timeMin: date.startOf('day').toISO(),
-    timeMax: date.endOf('day').toISO(),
-    timeZone: date.zoneName,
+    timeMin: date.startOf('day').toISO()!,
+    timeMax: date.endOf('day').toISO()!,
+    timeZone: date.zoneName ?? 'UTC', // TODO: Use browser timezone? This probably never happens anyway
   });
 
   const showLoader =

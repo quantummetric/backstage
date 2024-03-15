@@ -27,7 +27,7 @@ For either simple or advanced installations, you'll need to add the dependency u
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/app @backstage/plugin-tech-radar
+yarn --cwd packages/app add @backstage/plugin-tech-radar
 ```
 
 ### Configuration
@@ -85,11 +85,12 @@ When defining the radar entries you can see the available properties on the file
 
 ### ring
 
-| Name    | Type   | Description                                       | Required? |
-| ------- | ------ | ------------------------------------------------- | --------- |
-| `id`    | string | The id of the ring                                | Yes       |
-| `name`  | string | The name of the ring                              | Yes       |
-| `color` | string | The color of the ring and entries inside the ring | Yes       |
+| Name          | Type   | Description                                       | Required? |
+| ------------- | ------ | ------------------------------------------------- | --------- |
+| `id`          | string | The id of the ring                                | Yes       |
+| `name`        | string | The name of the ring                              | Yes       |
+| `color`       | string | The color of the ring and entries inside the ring | Yes       |
+| `description` | string | Description of the Ring                           | No        |
 
 ### entry
 
@@ -170,16 +171,16 @@ The TS example can be found [here](src/sample.ts).
             "quadrant": "1",
             "timeline": [
                 {
-                    "moved": 0,
-                    "ringId": "trial",
-                    "date": "2022-02-06",
-                    "description": "Long description for trial"
-                },
-                {
                     "moved": 1,
                     "ringId": "adopt",
                     "date": "2022-02-08",
                     "description": "Long description for adopt"
+                },
+                {
+                    "moved": 0,
+                    "ringId": "trial",
+                    "date": "2022-02-06",
+                    "description": "Long description for trial"
                 }
             ]
         },

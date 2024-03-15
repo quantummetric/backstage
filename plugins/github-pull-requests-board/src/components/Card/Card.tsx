@@ -16,7 +16,7 @@
 import React, { PropsWithChildren, FunctionComponent } from 'react';
 import { Box, Paper, CardActionArea } from '@material-ui/core';
 import CardHeader from './CardHeader';
-import { Label } from '../../utils/types';
+import { Label, Status } from '../../utils/types';
 
 type Props = {
   title: string;
@@ -29,9 +29,12 @@ type Props = {
   isDraft: boolean;
   repositoryIsArchived: boolean;
   labels?: Label[];
+  status?: Status;
 };
 
-const Card: FunctionComponent<Props> = (props: PropsWithChildren<Props>) => {
+const Card: FunctionComponent<PropsWithChildren<Props>> = (
+  props: React.PropsWithChildren<Props>,
+) => {
   const {
     title,
     createdAt,
@@ -43,6 +46,7 @@ const Card: FunctionComponent<Props> = (props: PropsWithChildren<Props>) => {
     isDraft,
     repositoryIsArchived,
     labels,
+    status,
     children,
   } = props;
 
@@ -61,6 +65,7 @@ const Card: FunctionComponent<Props> = (props: PropsWithChildren<Props>) => {
               isDraft={isDraft}
               repositoryIsArchived={repositoryIsArchived}
               labels={labels}
+              status={status}
             />
             {children}
           </Box>

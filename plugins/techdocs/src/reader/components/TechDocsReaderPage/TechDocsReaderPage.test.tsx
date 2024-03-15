@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import React from 'react';
-import { act } from '@testing-library/react';
 import { scmIntegrationsApiRef } from '@backstage/integration-react';
 
 import { entityRouteRef } from '@backstage/plugin-catalog-react';
@@ -60,10 +59,12 @@ const mockTechDocsMetadata = {
 
 const getEntityMetadata = jest.fn();
 const getTechDocsMetadata = jest.fn();
+const getCookie = jest.fn();
 
 const techdocsApiMock = {
   getEntityMetadata,
   getTechDocsMetadata,
+  getCookie,
 };
 
 const techdocsStorageApiMock: jest.Mocked<typeof techdocsStorageApiRef.T> = {
@@ -114,8 +115,35 @@ const mountedRoutes = {
 
 describe('<TechDocsReaderPage />', () => {
   beforeEach(() => {
+    type Listener = (event: { data: any }) => void;
+
+    global.BroadcastChannel = jest
+      .fn()
+      .mockImplementation((_channelName: string) => {
+        let listeners: Listener[] = [];
+        return {
+          postMessage: jest.fn((message: any) => {
+            listeners.forEach(listener => listener({ data: message }));
+          }),
+          addEventListener: jest.fn((event: string, listener: Listener) => {
+            if (event === 'message') {
+              listeners.push(listener);
+            }
+          }),
+          removeEventListener: jest.fn((event: string, listener: Listener) => {
+            if (event === 'message') {
+              listeners = listeners.filter(l => l !== listener);
+            }
+          }),
+        };
+      });
+
     getEntityMetadata.mockResolvedValue(mockEntityMetadata);
     getTechDocsMetadata.mockResolvedValue(mockTechDocsMetadata);
+    getCookie.mockResolvedValue({
+      // Expires in 10 minutes
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    });
   });
 
   afterEach(() => {
@@ -150,31 +178,25 @@ describe('<TechDocsReaderPage />', () => {
   });
 
   it('should render a techdocs reader page with children', async () => {
-    await act(async () => {
-      const rendered = await renderInTestApp(
-        <Wrapper>
-          <TechDocsReaderPage
-            entityRef={{
-              name: 'test-name',
-              namespace: 'test-namespace',
-              kind: 'test',
-            }}
-          >
-            techdocs reader page
-          </TechDocsReaderPage>
-        </Wrapper>,
-        {
-          mountedRoutes,
-        },
-      );
-      expect(
-        rendered.container.querySelector('header'),
-      ).not.toBeInTheDocument();
-      expect(
-        rendered.container.querySelector('article'),
-      ).not.toBeInTheDocument();
-      expect(rendered.getByText('techdocs reader page')).toBeInTheDocument();
-    });
+    const rendered = await renderInTestApp(
+      <Wrapper>
+        <TechDocsReaderPage
+          entityRef={{
+            name: 'test-name',
+            namespace: 'test-namespace',
+            kind: 'test',
+          }}
+        >
+          techdocs reader page
+        </TechDocsReaderPage>
+      </Wrapper>,
+      {
+        mountedRoutes,
+      },
+    );
+    expect(rendered.container.querySelector('header')).not.toBeInTheDocument();
+    expect(rendered.container.querySelector('article')).not.toBeInTheDocument();
+    expect(rendered.getByText('techdocs reader page')).toBeInTheDocument();
   });
 
   it('should render techdocs reader page with addons', async () => {
@@ -183,56 +205,52 @@ describe('<TechDocsReaderPage />', () => {
     const namespace = 'test-namespace';
     const kind = 'test';
 
-    await act(async () => {
-      const rendered = await renderInTestApp(
-        <Wrapper>
-          <FlatRoutes>
-            <Route
-              path="/docs/:namespace/:kind/:name/*"
-              element={<TechDocsReaderPage />}
-            >
-              <TechDocsAddons>
-                <ReportIssue />
-              </TechDocsAddons>
-            </Route>
-          </FlatRoutes>
-        </Wrapper>,
-        {
-          mountedRoutes,
-          routeEntries: ['/docs/test-namespace/test/test-name'],
-        },
-      );
+    const rendered = await renderInTestApp(
+      <Wrapper>
+        <FlatRoutes>
+          <Route
+            path="/docs/:namespace/:kind/:name/*"
+            element={<TechDocsReaderPage />}
+          >
+            <TechDocsAddons>
+              <ReportIssue />
+            </TechDocsAddons>
+          </Route>
+        </FlatRoutes>
+      </Wrapper>,
+      {
+        mountedRoutes,
+        routeEntries: ['/docs/test-namespace/test/test-name'],
+      },
+    );
 
-      expect(
-        rendered.getByText(`PageMock: ${namespace}#${kind}#${name}`),
-      ).toBeInTheDocument();
-    });
+    expect(
+      rendered.getByText(`PageMock: ${namespace}#${kind}#${name}`),
+    ).toBeInTheDocument();
   });
 
   it('should render techdocs reader page with addons and page', async () => {
     (Page as jest.Mock).mockImplementation(PageMock);
-    await act(async () => {
-      const rendered = await renderInTestApp(
-        <Wrapper>
-          <FlatRoutes>
-            <Route
-              path="/docs/:namespace/:kind/:name/*"
-              element={<TechDocsReaderPage />}
-            >
-              <p>the page</p>
-              <TechDocsAddons>
-                <ReportIssue />
-              </TechDocsAddons>
-            </Route>
-          </FlatRoutes>
-        </Wrapper>,
-        {
-          mountedRoutes,
-          routeEntries: ['/docs/test-namespace/test/test-name'],
-        },
-      );
+    const rendered = await renderInTestApp(
+      <Wrapper>
+        <FlatRoutes>
+          <Route
+            path="/docs/:namespace/:kind/:name/*"
+            element={<TechDocsReaderPage />}
+          >
+            <p>the page</p>
+            <TechDocsAddons>
+              <ReportIssue />
+            </TechDocsAddons>
+          </Route>
+        </FlatRoutes>
+      </Wrapper>,
+      {
+        mountedRoutes,
+        routeEntries: ['/docs/test-namespace/test/test-name'],
+      },
+    );
 
-      expect(rendered.getByText('the page')).toBeInTheDocument();
-    });
+    expect(rendered.getByText('the page')).toBeInTheDocument();
   });
 });

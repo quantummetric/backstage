@@ -16,10 +16,7 @@
 
 import { getVoidLogger } from '@backstage/backend-common';
 import lunr from 'lunr';
-import {
-  IndexableDocument,
-  SearchEngine,
-} from '@backstage/plugin-search-common';
+import { IndexableDocument } from '@backstage/plugin-search-common';
 import {
   ConcreteLunrQuery,
   LunrSearchEngine,
@@ -28,6 +25,7 @@ import {
   parseHighlightFields,
 } from './LunrSearchEngine';
 import { LunrSearchEngineIndexer } from './LunrSearchEngineIndexer';
+import { SearchEngine } from '../types';
 import { TestPipeline } from '../test-utils';
 
 /**
@@ -1142,6 +1140,35 @@ describe('parseHighlightFields', () => {
       }),
     ).toEqual({
       foo: '<>abc</> <>def</>',
+      bar: 'ghi <>jkl</>',
+    });
+  });
+
+  it('should filter out non array positions', () => {
+    expect(
+      parseHighlightFields({
+        preTag: '<>',
+        postTag: '</>',
+        doc: { foo: 'abc def', bar: 'ghi jkl' },
+        positionMetadata: {
+          test: {
+            foo: {
+              // invalid position item
+              position: [null as unknown as number[]],
+            },
+          },
+          anotherTest: {
+            foo: {
+              position: [[4, 3]],
+            },
+            bar: {
+              position: [[4, 3]],
+            },
+          },
+        },
+      }),
+    ).toEqual({
+      foo: 'abc <>def</>',
       bar: 'ghi <>jkl</>',
     });
   });

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 
 info:
-  title: '@backstage/plugin-todo-backend'
+  title: todo
   version: '1'
   description: The Backstage backend plugin that provides source code todo comment browsing.
   license:
@@ -95,7 +95,8 @@ paths:
       parameters:
         - name: entity
           in: query
-          required: true
+          required: false
+          allowReserved: true
           schema:
             type: string
             minLength: 1
@@ -110,6 +111,7 @@ paths:
         - name: filter
           in: query
           required: false
+          allowReserved: true
           schema:
             type: array
             description: A list of filters used to narrow down the listed TODO items

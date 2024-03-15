@@ -23,12 +23,13 @@ import type {
   JenkinsProject,
   ScmDetails,
 } from '../types';
-import {
-  AuthorizeResult,
-  PermissionEvaluator,
-} from '@backstage/plugin-permission-common';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 import { jenkinsExecutePermission } from '@backstage/plugin-jenkins-common';
 import fetch, { HeaderInit } from 'node-fetch';
+import {
+  BackstageCredentials,
+  PermissionsService,
+} from '@backstage/backend-plugin-api';
 
 export class JenkinsApiImpl {
   private static readonly lastBuildTreeSpec = `lastBuild[
@@ -54,6 +55,7 @@ export class JenkinsApiImpl {
   private static readonly jobTreeSpec = `actions[*],
                    ${JenkinsApiImpl.lastBuildTreeSpec}
                    jobs{0,1},
+                   url,
                    name,
                    fullName,
                    displayName,
@@ -64,7 +66,17 @@ export class JenkinsApiImpl {
                    ${JenkinsApiImpl.jobTreeSpec}
                  ]{0,50}`;
 
-  constructor(private readonly permissionApi?: PermissionEvaluator) {}
+  private static readonly jobBuildsTreeSpec = `
+                   name,
+                   description,
+                   url,
+                   fullName,
+                   displayName,
+                   fullDisplayName,
+                   inQueue,
+                   builds[*]`;
+
+  constructor(private readonly permissionApi?: PermissionsService) {}
 
   /**
    * Get a list of projects for the given JenkinsInfo.
@@ -149,12 +161,12 @@ export class JenkinsApiImpl {
     jobFullName: string,
     buildNumber: number,
     resourceRef: string,
-    options?: { token?: string },
+    options: { credentials: BackstageCredentials },
   ): Promise<number> {
     if (this.permissionApi) {
       const response = await this.permissionApi.authorize(
         [{ permission: jenkinsExecutePermission, resourceRef }],
-        { token: options?.token },
+        { credentials: options.credentials },
       );
       // permission api returns always at least one item, we need to check only one result since we do not expect any additional results
       const { result } = response[0];
@@ -328,5 +340,36 @@ export class JenkinsApiImpl {
   ): string {
     const jobs = jobFullName.split('/');
     return `${jenkinsInfo.baseUrl}/job/${jobs.join('/job/')}/${buildId}`;
+  }
+
+  async getJobBuilds(jenkinsInfo: JenkinsInfo, jobFullName: string) {
+    let jobName = jobFullName;
+
+    if (jobFullName.includes('/')) {
+      const arr = jobFullName.split('/');
+      const multibranchJobName = arr.shift();
+      jobName = [
+        multibranchJobName,
+        'job',
+        encodeURIComponent(arr.join('/')),
+      ].join('/');
+    }
+
+    const response = await fetch(
+      `${
+        jenkinsInfo.baseUrl
+      }/job/${jobName}/api/json?tree=${JenkinsApiImpl.jobBuildsTreeSpec.replace(
+        /\s/g,
+        '',
+      )}`,
+      {
+        method: 'get',
+        headers: jenkinsInfo.headers as HeaderInit,
+      },
+    );
+
+    const jobBuilds = await response.json();
+
+    return jobBuilds;
   }
 }

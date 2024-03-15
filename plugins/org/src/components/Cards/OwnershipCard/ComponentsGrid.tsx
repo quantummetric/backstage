@@ -22,7 +22,6 @@ import {
   ResponseErrorPanel,
 } from '@backstage/core-components';
 import { useRouteRef } from '@backstage/core-plugin-api';
-import { BackstageTheme } from '@backstage/theme';
 import {
   Box,
   createStyles,
@@ -34,8 +33,9 @@ import React from 'react';
 import pluralize from 'pluralize';
 import { catalogIndexRouteRef } from '../../../routes';
 import { useGetEntities } from './useGetEntities';
+import { EntityRelationAggregation } from './types';
 
-const useStyles = makeStyles((theme: BackstageTheme) =>
+const useStyles = makeStyles(theme =>
   createStyles({
     card: {
       border: `1px solid ${theme.palette.divider}`,
@@ -107,15 +107,15 @@ const EntityCountTile = ({
 };
 
 export const ComponentsGrid = ({
+  className,
   entity,
   relationsType,
-  isGroup,
   entityFilterKind,
   entityLimit = 6,
 }: {
+  className?: string;
   entity: Entity;
-  relationsType: string;
-  isGroup: boolean;
+  relationsType: EntityRelationAggregation;
   entityFilterKind?: string[];
   entityLimit?: number;
 }) => {
@@ -123,7 +123,6 @@ export const ComponentsGrid = ({
   const { componentsWithCounters, loading, error } = useGetEntities(
     entity,
     relationsType,
-    isGroup,
     entityFilterKind,
     entityLimit,
   );
@@ -135,7 +134,7 @@ export const ComponentsGrid = ({
   }
 
   return (
-    <Grid container>
+    <Grid container className={className}>
       {componentsWithCounters?.map(c => (
         <Grid item xs={6} md={6} lg={4} key={c.type ?? c.kind}>
           <EntityCountTile

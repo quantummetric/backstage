@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  AuthHandler,
-  AuthProviderRouteHandlers,
-  AuthResolverContext,
-  AuthResponse,
-  SignInResolver,
-} from '../types';
+import { AuthHandler } from '../types';
 import { Request, Response } from 'express';
 import { makeProfileInfo } from '../../lib/passport';
 import { AuthenticationError } from '@backstage/errors';
@@ -28,6 +22,12 @@ import { prepareBackstageIdentityResponse } from '../prepareBackstageIdentityRes
 import { createAuthProviderIntegration } from '../createAuthProviderIntegration';
 import { Profile } from 'passport';
 import { decodeJwt } from 'jose';
+import {
+  AuthProviderRouteHandlers,
+  AuthResolverContext,
+  ClientAuthResponse,
+  SignInResolver,
+} from '@backstage/plugin-auth-node';
 
 export const ID_TOKEN_HEADER = 'x-ms-token-aad-id-token';
 export const ACCESS_TOKEN_HEADER = 'x-ms-token-aad-access-token';
@@ -44,7 +44,7 @@ export type EasyAuthResult = {
   accessToken?: string;
 };
 
-export type EasyAuthResponse = AuthResponse<{}>;
+export type EasyAuthResponse = ClientAuthResponse<{}>;
 
 export class EasyAuthAuthProvider implements AuthProviderRouteHandlers {
   private readonly resolverContext: AuthResolverContext;
@@ -185,7 +185,7 @@ function validateAppServiceConfiguration(env: NodeJS.ProcessEnv) {
   if (
     env.WEBSITE_AUTH_DEFAULT_PROVIDER?.toLowerCase() !== 'azureactivedirectory'
   ) {
-    throw new Error('Authentication provider is not Azure Active Directory');
+    throw new Error('Authentication provider is not Entra ID');
   }
   if (process.env.WEBSITE_AUTH_TOKEN_STORE?.toLowerCase() !== 'true') {
     throw new Error('Token Store is not enabled');

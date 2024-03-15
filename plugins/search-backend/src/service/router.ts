@@ -15,14 +15,16 @@
  */
 
 import express from 'express';
-import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import { z } from 'zod';
-import { errorHandler } from '@backstage/backend-common';
+import {
+  HostDiscovery,
+  createLegacyAuthAdapters,
+  errorHandler,
+} from '@backstage/backend-common';
 import { InputError } from '@backstage/errors';
 import { Config } from '@backstage/config';
 import { JsonObject, JsonValue } from '@backstage/types';
-import { getBearerTokenFromAuthorizationHeader } from '@backstage/plugin-auth-node';
 import {
   PermissionAuthorizer,
   PermissionEvaluator,
@@ -33,10 +35,14 @@ import {
   IndexableResultSet,
   SearchResultSet,
 } from '@backstage/plugin-search-common';
-import { SearchEngine } from '@backstage/plugin-search-common';
+import { SearchEngine } from '@backstage/plugin-search-backend-node';
 import { AuthorizedSearchEngine } from './AuthorizedSearchEngine';
-import type { ApiRouter } from '@backstage/backend-openapi-utils';
-import spec from '../schema/openapi.generated';
+import { createOpenApiRouter } from '../schema/openapi.generated';
+import {
+  AuthService,
+  DiscoveryService,
+  HttpAuthService,
+} from '@backstage/backend-plugin-api';
 
 const jsonObjectSchema: z.ZodSchema<JsonObject> = z.lazy(() => {
   const jsonValueSchema: z.ZodSchema<JsonValue> = z.lazy(() =>
@@ -59,12 +65,16 @@ const jsonObjectSchema: z.ZodSchema<JsonObject> = z.lazy(() => {
 export type RouterOptions = {
   engine: SearchEngine;
   types: Record<string, DocumentTypeInfo>;
+  discovery?: DiscoveryService;
   permissions: PermissionEvaluator | PermissionAuthorizer;
   config: Config;
   logger: Logger;
+  auth?: AuthService;
+  httpAuth?: HttpAuthService;
 };
 
 const defaultMaxPageLimit = 100;
+const defaultMaxTermLength = 100;
 const allowedLocationProtocols = ['http:', 'https:'];
 
 /**
@@ -73,27 +83,44 @@ const allowedLocationProtocols = ['http:', 'https:'];
 export async function createRouter(
   options: RouterOptions,
 ): Promise<express.Router> {
-  const { engine: inputEngine, types, permissions, config, logger } = options;
+  const router = await createOpenApiRouter();
+  const {
+    engine: inputEngine,
+    types,
+    permissions,
+    config,
+    logger,
+    discovery = HostDiscovery.fromConfig(config),
+  } = options;
+
+  const { auth, httpAuth } = createLegacyAuthAdapters({
+    ...options,
+    discovery,
+  });
 
   const maxPageLimit =
     config.getOptionalNumber('search.maxPageLimit') ?? defaultMaxPageLimit;
 
+  const maxTermLength =
+    config.getOptionalNumber('search.maxTermLength') ?? defaultMaxTermLength;
+
   const requestSchema = z.object({
-    term: z.string().default(''),
+    term: z
+      .string()
+      .refine(
+        term => term.length <= maxTermLength,
+        term => ({
+          message: `The term length "${term.length}" is greater than "${maxTermLength}"`,
+        }),
+      )
+      .default(''),
     filters: jsonObjectSchema.optional(),
     types: z
       .array(z.string().refine(type => Object.keys(types).includes(type)))
       .optional(),
     pageCursor: z.string().optional(),
     pageLimit: z
-      .string()
-      .transform(pageLimit => parseInt(pageLimit, 10))
-      .refine(
-        pageLimit => !isNaN(pageLimit),
-        pageLimit => ({
-          message: `The page limit "${pageLimit}" is not a number`,
-        }),
-      )
+      .number()
       .refine(
         pageLimit => pageLimit <= maxPageLimit,
         pageLimit => ({
@@ -148,7 +175,6 @@ export async function createRouter(
     })),
   });
 
-  const router = Router() as ApiRouter<typeof spec>;
   router.get('/query', async (req, res) => {
     const parseResult = requestSchema.passthrough().safeParse(req.query);
 
@@ -166,12 +192,16 @@ export async function createRouter(
       }`,
     );
 
-    const token = getBearerTokenFromAuthorizationHeader(
-      req.header('authorization'),
-    );
-
     try {
-      const resultSet = await engine?.query(query, { token });
+      const credentials = await httpAuth.credentials(req);
+      const { token } = await auth.getPluginRequestToken({
+        onBehalfOf: credentials,
+        targetPluginId: 'search',
+      });
+      const resultSet = await engine?.query(query, {
+        token,
+        credentials,
+      });
 
       res.json(filterResultSet(toSearchResults(resultSet)));
     } catch (error) {

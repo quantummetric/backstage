@@ -20,7 +20,7 @@ We created the Incremental Entity Provider to address all of the above issues. T
 
 Incremental Entity Providers will wait a configurable interval before proceeding to the next burst.
 
-Once the source has no more results, Incremental Entity Provider compares all entities annotated with `@backstage/incremental-entity-provider: <entity-provider-id>` against all marked entities to determine which entities committed by same entity provider were not marked during the last ingestion cycle. All unmarked entities are deleted at the end of the cycle. The Incremental Entity Provider rests for a fixed internal before restarting the ingestion process.
+Once the source has no more results, Incremental Entity Provider compares all entities annotated with `@backstage/incremental-entity-provider: <entity-provider-id>` against all marked entities to determine which entities committed by same entity provider were not marked during the last ingestion cycle. All unmarked entities are deleted at the end of the cycle. The Incremental Entity Provider rests for a fixed interval before restarting the ingestion process.
 
 ![Diagram of execution of an Incremental Entity Provider](https://user-images.githubusercontent.com/74687/185822734-ee6279c7-64fa-46b9-9aa8-d4092ab73858.png)
 
@@ -41,7 +41,7 @@ The Incremental Entity Provider backend is designed for data sources that provid
 
 ## Installation
 
-1. Install `@backstage/plugin-catalog-backend-module-incremental-ingestion` with `yarn add --cwd packages/backend @backstage/plugin-catalog-backend-module-incremental-ingestion` from the Backstage root directory.
+1. Install `@backstage/plugin-catalog-backend-module-incremental-ingestion` with `yarn --cwd packages/backend add @backstage/plugin-catalog-backend-module-incremental-ingestion` from the Backstage root directory.
 2. In your catalog.ts, import `IncrementalCatalogBuilder` from `@backstage/plugin-catalog-backend-module-incremental-ingestion` and instantiate it with `await IncrementalCatalogBuilder.create(env, builder)`. You have to pass `builder` into `IncrementalCatalogBuilder.create` function because `IncrementalCatalogBuilder` will convert an `IncrementalEntityProvider` into an `EntityProvider` and call `builder.addEntityProvider`.
 
 ```ts
@@ -99,18 +99,18 @@ export default async function createPlugin(
 
 If you want to manage your incremental entity providers via REST endpoints, the following endpoints are available:
 
-| Method | Path                                       | Description                                                                                                                 |
-| ------ | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/incremental/health`                      | Checks the health of all incremental providers. Returns array of any unhealthy ones.                                        |
-| GET    | `/incremental/providers`                   | Get a list of all known incremental entity providers                                                                        |
-| GET    | `/incremental/providers/:provider`         | Checks the status of an incremental provider (resting, interstitial, etc).                                                  |
-| POST   | `/incremental/providers/:provider/trigger` | Triggers a provider's next action immediately. E.g., if it's currently interstitial, it will trigger the next burst.        |
-| POST   | `/incremental/providers/:provider/start`   | Stop the current ingestion cycle and start a new one immediately.                                                           |
-| POST   | `/incremental/providers/:provider/cancel`  | Stop the current ingestion cycle and start a new one in 24 hours.                                                           |
-| DELETE | `/incremental/providers/:provider`         | Completely remove all records for the provider and schedule it to start again in 24 hours.                                  |
-| GET    | `/incremental/providers/:provider/marks`   | Retrieve a list of all ingestion marks for the current ingestion cycle.                                                     |
-| DELETE | `/incremental/providers/:provider/marks`   | Remove all ingestion marks for the current ingestion cycle.                                                                 |
-| POST   | `/incremental/cleanup`                     | Completely remove all records for ALL providers and schedule them to start again in 24 hours. (CAUTION! Can cause orphans!) |
+| Method | Path                                                   | Description                                                                                                                 |
+| ------ | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/catalog/incremental/health`                      | Checks the health of all incremental providers. Returns array of any unhealthy ones.                                        |
+| GET    | `/api/catalog/incremental/providers`                   | Get a list of all known incremental entity providers                                                                        |
+| GET    | `/api/catalog/incremental/providers/:provider`         | Checks the status of an incremental provider (resting, interstitial, etc).                                                  |
+| POST   | `/api/catalog/incremental/providers/:provider/trigger` | Triggers a provider's next action immediately. E.g., if it's currently interstitial, it will trigger the next burst.        |
+| POST   | `/api/catalog/incremental/providers/:provider/start`   | Stop the current ingestion cycle and start a new one immediately.                                                           |
+| POST   | `/api/catalog/incremental/providers/:provider/cancel`  | Stop the current ingestion cycle and start a new one in 24 hours.                                                           |
+| DELETE | `/api/catalog/incremental/providers/:provider`         | Completely remove all records for the provider and schedule it to start again in 24 hours.                                  |
+| GET    | `/api/catalog/incremental/providers/:provider/marks`   | Retrieve a list of all ingestion marks for the current ingestion cycle.                                                     |
+| DELETE | `/api/catalog/incremental/providers/:provider/marks`   | Remove all ingestion marks for the current ingestion cycle.                                                                 |
+| POST   | `/api/catalog/incremental/cleanup`                     | Completely remove all records for ALL providers and schedule them to start again in 24 hours. (CAUTION! Can cause orphans!) |
 
 In all cases, `:provider` is the name of the incremental entity provider.
 
@@ -323,22 +323,17 @@ incrementalBuilder.addIncrementalEntityProvider(myEntityProvider, {
   // How long should it attempt to read pages from the API in a
   // single burst? Keep this short. The Incremental Entity Provider
   // will attempt to read as many pages as it can in this time
-  burstLength: Duration.fromObject({ seconds: 3 }),
+  burstLength: { seconds: 3 },
 
   // How long should it wait between bursts?
-  burstInterval: Duration.fromObject({ seconds: 3 }),
+  burstInterval: { seconds: 3 },
 
   // How long should it rest before re-ingesting again?
-  restLength: Duration.fromObject({ day: 1 }),
+  restLength: { day: 1 },
 
   // Optional back-off configuration - how long should it wait to retry
   // in the event of an error?
-  backoff: [
-    Duration.fromObject({ seconds: 5 }),
-    Duration.fromObject({ seconds: 30 }),
-    Duration.fromObject({ minutes: 10 }),
-    Duration.fromObject({ hours: 3 }),
-  ],
+  backoff: [{ seconds: 5 }, { seconds: 30 }, { minutes: 10 }, { hours: 3 }],
 
   // Optional. Use this to prevent removal of entities above a given
   // percentage. This can be helpful if a data source is flaky and

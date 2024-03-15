@@ -21,11 +21,14 @@ import {
   Progress,
   WarningPanel,
 } from '@backstage/core-components';
-import { Typography } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
 
 import { useTitle, usePlaylistList } from '../../hooks';
 import { PlaylistCard } from '../PlaylistCard';
 
+/**
+ * @public
+ */
 export const PlaylistList = () => {
   const { loading, error, playlists } = usePlaylistList();
   const pluralTitleLowerCase = useTitle({

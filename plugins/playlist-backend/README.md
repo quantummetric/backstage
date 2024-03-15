@@ -8,7 +8,7 @@ Welcome to the playlist backend plugin!
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-playlist-backend
+yarn --cwd packages/backend add @backstage/plugin-playlist-backend
 ```
 
 ### Adding the plugin to your `packages/backend`
@@ -84,4 +84,21 @@ export default async function createPlugin(env: PluginEnvironment): Promise<Rout
     discovery: env.discovery,
     policy: new BackstagePermissionPolicy(),
     ...
+```
+
+### New Backend System
+
+The Playlist backend plugin has support for the [new backend system](https://backstage.io/docs/backend-system/), here's how you can set that up:
+
+In your `packages/backend/src/index.ts` make the following changes:
+
+```diff
+import { createBackend } from '@backstage/backend-defaults';
+
+const backend = createBackend();
+
+backend.add(import('@backstage/plugin-playlist-backend'));
+// ... other feature additions
+
+backend.start();
 ```

@@ -13,7 +13,7 @@ To get started, first install the plugin with the following command:
 
 ```bash
 # From your Backstage root directory
-yarn add --cwd packages/app @backstage/plugin-graphql-voyager
+yarn --cwd packages/app add @backstage/plugin-graphql-voyager
 ```
 
 ### Adding the page
@@ -27,7 +27,7 @@ In order to be able to navigate to the graphQL voyager page, a new route needs t
 
   const routes = (
     <FlatRoutes>
-      <Route path="/graphql-voyager" element={<GraphqlVoyagerPage title="This is Voyager!"/>}/>
+      <Route path="/graphql-voyager" element={<GraphQLVoyagerPage title="This is Voyager!"/>}/>
 ```
 
 ### Configuration

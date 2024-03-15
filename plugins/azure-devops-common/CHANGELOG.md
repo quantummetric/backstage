@@ -1,5 +1,59 @@
 # @backstage/plugin-azure-devops-common
 
+## 0.4.0-next.1
+
+### Patch Changes
+
+- 3270b1b: Azure DevOps plugin is now integrated with permission framework for its core features, see the https://github.com/backstage/backstage/blob/master/plugins/azure-devops/README.md#permission-framework for more details.
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.7.13-next.1
+  - @backstage/plugin-catalog-common@1.0.22-next.1
+
+## 0.4.0-next.0
+
+### Minor Changes
+
+- 9fdb86a: Ability to fetch the README file from a different Azure DevOps path.
+
+  Defaults to the current, Azure DevOps default behaviour (`README.md` in the root of the git repo); to use a different path, add the annotation `dev.azure.com/readme-path`
+
+  Example:
+
+  ```yaml
+  dev.azure.com/readme-path: /my-path/README.md
+  ```
+
+## 0.3.2
+
+### Patch Changes
+
+- c70e4f5: Added multi-org support
+- 043b724: Introduced new `AzureDevOpsAnnotatorProcessor` that adds the needed annotations automatically. Also, moved constants to common package so they can be shared more easily
+
+## 0.3.2-next.1
+
+### Patch Changes
+
+- c70e4f5: Added multi-org support
+
+## 0.3.2-next.0
+
+### Patch Changes
+
+- 043b724c56: Introduced new `AzureDevOpsAnnotatorProcessor` that adds the needed annotations automatically. Also, moved constants to common package so they can be shared more easily
+
+## 0.3.1
+
+### Patch Changes
+
+- 406b786a2a2c: Mark package as being free of side effects, allowing more optimized Webpack builds.
+
+## 0.3.1-next.0
+
+### Patch Changes
+
+- 406b786a2a2c: Mark package as being free of side effects, allowing more optimized Webpack builds.
+
 ## 0.3.0
 
 ### Minor Changes

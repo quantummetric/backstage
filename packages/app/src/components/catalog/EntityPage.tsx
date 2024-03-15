@@ -41,6 +41,7 @@ import {
   EntityAzurePullRequestsContent,
   isAzureDevOpsAvailable,
   isAzurePipelinesAvailable,
+  EntityAzureReadmeCard,
 } from '@backstage/plugin-azure-devops';
 import {
   isOctopusDeployAvailable,
@@ -66,7 +67,9 @@ import {
   isKind,
   isOrphan,
   hasLabels,
-} from '@internal/plugin-catalog-customized';
+  hasRelationWarnings,
+  EntityRelationWarning,
+} from '@backstage/plugin-catalog';
 import {
   Direction,
   EntityCatalogGraphCard,
@@ -74,7 +77,7 @@ import {
 import {
   EntityCircleCIContent,
   isCircleCIAvailable,
-} from '@backstage/plugin-circleci';
+} from '@circleci/backstage-plugin';
 import {
   EntityCloudbuildContent,
   isCloudbuildAvailable,
@@ -101,6 +104,10 @@ import {
 } from '@backstage/plugin-jenkins';
 import { EntityKafkaContent } from '@backstage/plugin-kafka';
 import { EntityKubernetesContent } from '@backstage/plugin-kubernetes';
+import {
+  isKubernetesClusterAvailable,
+  EntityKubernetesClusterContent,
+} from '@backstage/plugin-kubernetes-cluster';
 import {
   EntityLastLighthouseAuditCard,
   EntityLighthouseContent,
@@ -178,6 +185,7 @@ import {
   isLinguistAvailable,
   EntityLinguistCard,
 } from '@backstage/plugin-linguist';
+import { EntityTeamPullRequestsContent } from '@backstage/plugin-github-pull-requests-board';
 
 const customEntityFilterKind = ['Component', 'API', 'System'];
 
@@ -329,6 +337,14 @@ const entityWarningContent = (
     </EntitySwitch>
 
     <EntitySwitch>
+      <EntitySwitch.Case if={hasRelationWarnings}>
+        <Grid item xs={12}>
+          <EntityRelationWarning />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch>
+
+    <EntitySwitch>
       <EntitySwitch.Case if={hasCatalogProcessingErrors}>
         <Grid item xs={12}>
           <EntityProcessingErrorsPanel />
@@ -397,6 +413,14 @@ const overviewContent = (
       <EntitySwitch.Case if={hasLabels}>
         <Grid item md={4} xs={12}>
           <EntityLabelsCard />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch>
+
+    <EntitySwitch>
+      <EntitySwitch.Case if={isAzureDevOpsAvailable}>
+        <Grid item md={6}>
+          <EntityAzureReadmeCard />
         </Grid>
       </EntitySwitch.Case>
     </EntitySwitch>
@@ -775,13 +799,19 @@ const groupPage = (
             entityFilterKind={customEntityFilterKind}
           />
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <EntityMembersListCard />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <EntityLinksCard />
         </Grid>
         <Grid item xs={12}>
           <EntityLikeDislikeRatingsCard />
         </Grid>
       </Grid>
+    </EntityLayout.Route>
+    <EntityLayout.Route path="/pull-requests" title="Pull Requests">
+      <EntityTeamPullRequestsContent />
     </EntityLayout.Route>
   </EntityLayoutWrapper>
 );
@@ -887,6 +917,13 @@ const resourcePage = (
           <EntityHasSystemsCard variant="gridItem" />
         </Grid>
       </Grid>
+    </EntityLayout.Route>
+    <EntityLayout.Route
+      path="/kubernetes-cluster"
+      title="Kubernetes Cluster"
+      if={isKubernetesClusterAvailable}
+    >
+      <EntityKubernetesClusterContent />
     </EntityLayout.Route>
     <EntityLayout.Route
       path="/puppetdb"

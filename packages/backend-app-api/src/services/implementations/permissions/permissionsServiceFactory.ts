@@ -24,12 +24,14 @@ import { ServerPermissionClient } from '@backstage/plugin-permission-node';
 export const permissionsServiceFactory = createServiceFactory({
   service: coreServices.permissions,
   deps: {
-    config: coreServices.config,
+    auth: coreServices.auth,
+    config: coreServices.rootConfig,
     discovery: coreServices.discovery,
     tokenManager: coreServices.tokenManager,
   },
-  async factory({ config, discovery, tokenManager }) {
+  async factory({ auth, config, discovery, tokenManager }) {
     return ServerPermissionClient.fromConfig(config, {
+      auth,
       discovery,
       tokenManager,
     });

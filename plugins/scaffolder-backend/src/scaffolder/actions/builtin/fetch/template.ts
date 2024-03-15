@@ -18,17 +18,18 @@ import { extname } from 'path';
 import { resolveSafeChildPath, UrlReader } from '@backstage/backend-common';
 import { InputError } from '@backstage/errors';
 import { ScmIntegrations } from '@backstage/integration';
-import { fetchContents } from './helpers';
-import { createTemplateAction } from '@backstage/plugin-scaffolder-node';
+import {
+  createTemplateAction,
+  fetchContents,
+  TemplateFilter,
+  TemplateGlobal,
+} from '@backstage/plugin-scaffolder-node';
 import globby from 'globby';
 import fs from 'fs-extra';
 import { isBinaryFile } from 'isbinaryfile';
-import {
-  TemplateFilter,
-  SecureTemplater,
-  TemplateGlobal,
-} from '../../../../lib/templating/SecureTemplater';
+import { SecureTemplater } from '../../../../lib/templating/SecureTemplater';
 import { createDefaultFilters } from '../../../../lib/templating/filters';
+import { examples } from './template.examples';
 
 /**
  * Downloads a skeleton, templates variables into file and directory names and content.
@@ -66,10 +67,14 @@ export function createFetchTemplateAction(options: {
     copyWithoutTemplating?: string[];
     cookiecutterCompat?: boolean;
     replace?: boolean;
+    trimBlocks?: boolean;
+    lstripBlocks?: boolean;
+    token?: string;
   }>({
     id: 'fetch:template',
     description:
       'Downloads a skeleton, templates variables into file and directory names and content, and places the result in the workspace, or optionally in a subdirectory specified by the `targetPath` input option.',
+    examples,
     schema: {
       input: {
         type: 'object',
@@ -128,6 +133,12 @@ export function createFetchTemplateAction(options: {
               'If set, replace files in targetPath instead of skipping existing ones.',
             type: 'boolean',
           },
+          token: {
+            title: 'Token',
+            description:
+              'An optional token to use for authentication when reading the resources.',
+            type: 'string',
+          },
         },
       },
     },
@@ -150,7 +161,7 @@ export function createFetchTemplateAction(options: {
       let renderFilename: boolean;
       if (ctx.input.copyWithoutRender) {
         ctx.logger.warn(
-          '[Deprecated] Please use copyWithoutTemplating instead.',
+          '[Deprecated] copyWithoutRender is deprecated Please use copyWithoutTemplating instead.',
         );
         copyOnlyPatterns = ctx.input.copyWithoutRender;
         renderFilename = false;
@@ -191,6 +202,7 @@ export function createFetchTemplateAction(options: {
         baseUrl: ctx.templateInfo?.baseUrl,
         fetchUrl: ctx.input.url,
         outputPath: templateDir,
+        token: ctx.input.token,
       });
 
       ctx.logger.info('Listing files and directories in template');
@@ -203,19 +215,13 @@ export function createFetchTemplateAction(options: {
       });
 
       const nonTemplatedEntries = new Set(
-        (
-          await Promise.all(
-            (copyOnlyPatterns || []).map(pattern =>
-              globby(pattern, {
-                cwd: templateDir,
-                dot: true,
-                onlyFiles: false,
-                markDirectories: true,
-                followSymbolicLinks: false,
-              }),
-            ),
-          )
-        ).flat(),
+        await globby(copyOnlyPatterns || [], {
+          cwd: templateDir,
+          dot: true,
+          onlyFiles: false,
+          markDirectories: true,
+          followSymbolicLinks: false,
+        }),
       );
 
       // Cookiecutter prefixes all parameters in templates with
@@ -239,6 +245,10 @@ export function createFetchTemplateAction(options: {
           ...additionalTemplateFilters,
         },
         templateGlobals: additionalTemplateGlobals,
+        nunjucksConfigs: {
+          trimBlocks: ctx.input.trimBlocks,
+          lstripBlocks: ctx.input.lstripBlocks,
+        },
       });
 
       for (const location of allEntriesInTemplate) {

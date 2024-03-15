@@ -27,7 +27,7 @@ import {
   RELATION_PROVIDES_API,
 } from '@backstage/catalog-model';
 import { createApp } from '@backstage/app-defaults';
-import { AppRouter, FeatureFlagged, FlatRoutes } from '@backstage/core-app-api';
+import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import {
   AlertDisplay,
   OAuthRequestDialog,
@@ -40,7 +40,7 @@ import {
   CatalogEntityPage,
   CatalogIndexPage,
   catalogPlugin,
-} from '@internal/plugin-catalog-customized';
+} from '@backstage/plugin-catalog';
 
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import {
@@ -55,11 +55,9 @@ import {
 import { orgPlugin } from '@backstage/plugin-org';
 import { ExplorePage } from '@backstage/plugin-explore';
 import { GcpProjectsPage } from '@backstage/plugin-gcp-projects';
-import { GraphiQLPage } from '@backstage/plugin-graphiql';
-import { HomepageCompositionRoot } from '@backstage/plugin-home';
+import { HomepageCompositionRoot, VisitListener } from '@backstage/plugin-home';
 import { LighthousePage } from '@backstage/plugin-lighthouse';
 import { NewRelicPage } from '@backstage/plugin-newrelic';
-import { NextScaffolderPage } from '@backstage/plugin-scaffolder/alpha';
 import { ScaffolderPage, scaffolderPlugin } from '@backstage/plugin-scaffolder';
 import {
   ScaffolderFieldExtensions,
@@ -69,15 +67,15 @@ import { SearchPage } from '@backstage/plugin-search';
 import { TechRadarPage } from '@backstage/plugin-tech-radar';
 import {
   TechDocsIndexPage,
-  TechDocsReaderPage,
   techdocsPlugin,
+  TechDocsReaderPage,
 } from '@backstage/plugin-techdocs';
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
 import {
   ExpandableNavigation,
+  LightBox,
   ReportIssue,
   TextSize,
-  LightBox,
 } from '@backstage/plugin-techdocs-module-addons-contrib';
 import {
   SettingsLayout,
@@ -91,10 +89,7 @@ import { apis } from './apis';
 import { entityPage } from './components/catalog/EntityPage';
 import { homePage } from './components/home/HomePage';
 import { Root } from './components/Root';
-import {
-  DelayingComponentFieldExtension,
-  LowerCaseValuePickerFieldExtension,
-} from './components/scaffolder/customScaffolderExtensions';
+import { DelayingComponentFieldExtension } from './components/scaffolder/customScaffolderExtensions';
 import { defaultPreviewTemplate } from './components/scaffolder/defaultPreviewTemplate';
 import { searchPage } from './components/search/SearchPage';
 import { providers } from './identityProviders';
@@ -104,7 +99,7 @@ import { techDocsPage } from './components/techdocs/TechDocsPage';
 import { ApacheAirflowPage } from '@backstage/plugin-apache-airflow';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
-import { PlaylistIndexPage } from '@backstage/plugin-playlist';
+import { PlaylistIndexPage, PlaylistPage } from '@backstage/plugin-playlist';
 import { TwoColumnLayout } from './components/scaffolder/customScaffolderLayouts';
 import { ScoreBoardPage } from '@oriflame/backstage-plugin-score-card';
 import { StackstormPage } from '@backstage/plugin-stackstorm';
@@ -112,6 +107,7 @@ import { PuppetDbPage } from '@backstage/plugin-puppetdb';
 import { DevToolsPage } from '@backstage/plugin-devtools';
 import { customDevToolsPage } from './components/devtools/CustomDevToolsPage';
 import { CatalogUnprocessedEntitiesPage } from '@backstage/plugin-catalog-unprocessed-entities';
+import { NotificationsPage } from '@backstage/plugin-notifications';
 
 const app = createApp({
   apis,
@@ -219,59 +215,33 @@ const routes = (
         <LightBox />
       </TechDocsAddons>
     </Route>
-    <FeatureFlagged with="scaffolder-next-preview">
-      <Route
-        path="/create"
-        element={
-          <NextScaffolderPage
-            groups={[
-              {
-                title: 'Recommended',
-                filter: entity =>
-                  entity?.metadata?.tags?.includes('recommended') ?? false,
-              },
-            ]}
-          />
-        }
-      >
-        <ScaffolderFieldExtensions>
-          <DelayingComponentFieldExtension />
-        </ScaffolderFieldExtensions>
-        <ScaffolderLayouts>
-          <TwoColumnLayout />
-        </ScaffolderLayouts>
-      </Route>
-    </FeatureFlagged>
-    <FeatureFlagged without="scaffolder-next-preview">
-      <Route
-        path="/create"
-        element={
-          <ScaffolderPage
-            defaultPreviewTemplate={defaultPreviewTemplate}
-            groups={[
-              {
-                title: 'Recommended',
-                filter: entity =>
-                  entity?.metadata?.tags?.includes('recommended') ?? false,
-              },
-            ]}
-          />
-        }
-      >
-        <ScaffolderFieldExtensions>
-          <LowerCaseValuePickerFieldExtension />
-        </ScaffolderFieldExtensions>
-        <ScaffolderLayouts>
-          <TwoColumnLayout />
-        </ScaffolderLayouts>
-      </Route>
-    </FeatureFlagged>
+    <Route
+      path="/create"
+      element={
+        <ScaffolderPage
+          defaultPreviewTemplate={defaultPreviewTemplate}
+          groups={[
+            {
+              title: 'Recommended',
+              filter: entity =>
+                entity?.metadata?.tags?.includes('recommended') ?? false,
+            },
+          ]}
+        />
+      }
+    >
+      <ScaffolderFieldExtensions>
+        <DelayingComponentFieldExtension />
+      </ScaffolderFieldExtensions>
+      <ScaffolderLayouts>
+        <TwoColumnLayout />
+      </ScaffolderLayouts>
+    </Route>
     <Route path="/explore" element={<ExplorePage />} />
     <Route
       path="/tech-radar"
       element={<TechRadarPage width={1500} height={800} />}
     />
-    <Route path="/graphiql" element={<GraphiQLPage />} />
     <Route path="/lighthouse" element={<LighthousePage />} />
     <Route path="/api-docs" element={<ApiExplorerPage />} />
     <Route path="/gcp-projects" element={<GcpProjectsPage />} />
@@ -296,12 +266,14 @@ const routes = (
     <Route path="/azure-pull-requests" element={<AzurePullRequestsPage />} />
     <Route path="/apache-airflow" element={<ApacheAirflowPage />} />
     <Route path="/playlist" element={<PlaylistIndexPage />} />
+    <Route path="/playlist/:playlistId" element={<PlaylistPage />} />
     <Route path="/score-board" element={<ScoreBoardPage />} />
     <Route path="/stackstorm" element={<StackstormPage />} />
     <Route path="/puppetdb" element={<PuppetDbPage />} />
     <Route path="/devtools" element={<DevToolsPage />}>
       {customDevToolsPage}
     </Route>
+    <Route path="/notifications" element={<NotificationsPage />} />
   </FlatRoutes>
 );
 
@@ -310,6 +282,7 @@ export default app.createRoot(
     <AlertDisplay transientTimeoutMs={2500} />
     <OAuthRequestDialog />
     <AppRouter>
+      <VisitListener />
       <Root>{routes}</Root>
     </AppRouter>
   </>,

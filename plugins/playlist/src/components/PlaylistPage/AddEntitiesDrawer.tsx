@@ -15,6 +15,7 @@
  */
 
 import {
+  CompoundEntityRef,
   Entity,
   getCompoundEntityRef,
   stringifyEntityRef,
@@ -22,6 +23,7 @@ import {
 import { useApi, useRouteRef } from '@backstage/core-plugin-api';
 import { CatalogEntityDocument } from '@backstage/plugin-catalog-common';
 import { catalogApiRef, entityRouteRef } from '@backstage/plugin-catalog-react';
+import type { SearchDocument } from '@backstage/plugin-search-common';
 import {
   SearchBar,
   SearchContextProvider,
@@ -30,23 +32,19 @@ import {
   SearchResultPager,
   useSearch,
 } from '@backstage/plugin-search-react';
-import {
-  Box,
-  Button,
-  Chip,
-  createStyles,
-  Divider,
-  Drawer,
-  Grid,
-  List,
-  ListItem,
-  ListItemSecondaryAction,
-  ListItemText,
-  makeStyles,
-  Paper,
-  Theme,
-  Typography,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
+import Chip from '@material-ui/core/Chip';
+import Divider from '@material-ui/core/Divider';
+import Drawer from '@material-ui/core/Drawer';
+import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import React, { useCallback, useEffect, useMemo } from 'react';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -58,7 +56,8 @@ const useStyles = makeStyles((theme: Theme) =>
     searchBarContainer: {
       borderRadius: 30,
       display: 'flex',
-      height: '2.4em',
+      height: '100%',
+      boxShadow: 'none',
     },
     gridContainer: {
       height: '100%',
@@ -130,13 +129,13 @@ export const AddEntitiesDrawer = ({
   };
 
   const addEntity = useCallback(
-    entityResult => {
+    (entityResult: SearchDocument) => {
       // TODO(kuangp): this parsing of the location is not great. Ideally `CatalogEntityDocument`
       // contains the `metadata.name` field so we can derive the full ref and we only fall back to
       // parsing location if it's missing (ie. for older versions)
       const match = entityResult.location.match(entityLocationRegex);
       if (match?.groups) {
-        onAdd(stringifyEntityRef(match?.groups));
+        onAdd(stringifyEntityRef(match?.groups as CompoundEntityRef));
       } else {
         // eslint-disable-next-line no-console
         console.error(

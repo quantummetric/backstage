@@ -31,11 +31,9 @@ import {
   EntitiesCatalog,
   EntitiesRequest,
   EntitiesResponse,
-  EntitiesSearchFilter,
   EntityAncestryResponse,
   EntityFacetsRequest,
   EntityFacetsResponse,
-  EntityFilter,
   EntityPagination,
   QueryEntitiesRequest,
   QueryEntitiesResponse,
@@ -49,13 +47,16 @@ import {
   DbRelationsRow,
   DbSearchRow,
 } from '../database/tables';
-
-import { Stitcher } from '../stitching/Stitcher';
+import { Stitcher } from '../stitching/types';
 
 import {
   isQueryEntitiesCursorRequest,
   isQueryEntitiesInitialRequest,
 } from './util';
+import {
+  EntitiesSearchFilter,
+  EntityFilter,
+} from '@backstage/plugin-catalog-node';
 
 const defaultSortField: EntityOrder = {
   field: 'metadata.uid',
@@ -450,7 +451,7 @@ export class DefaultEntitiesCatalog implements EntitiesCatalog {
     countQuery.count('search.entity_id', { as: 'count' });
 
     const [rows, [{ count }]] = await Promise.all([
-      dbQuery,
+      limit > 0 ? dbQuery : [],
       // for performance reasons we invoke the countQuery
       // only on the first request.
       // The result is then embedded into the cursor
@@ -606,7 +607,9 @@ export class DefaultEntitiesCatalog implements EntitiesCatalog {
       .where('entity_id', uid)
       .delete();
 
-    await this.stitcher.stitch(new Set(relationPeers.map(p => p.ref)));
+    await this.stitcher.stitch({
+      entityRefs: new Set(relationPeers.map(p => p.ref)),
+    });
   }
 
   async entityAncestry(rootRef: string): Promise<EntityAncestryResponse> {

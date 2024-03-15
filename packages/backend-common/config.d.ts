@@ -67,6 +67,22 @@ export interface Config {
           };
         };
 
+    /**
+     * An absolute path to a directory that can be used as a working dir, for
+     * example as scratch space for large operations.
+     *
+     * @remarks
+     *
+     * Note that this must be an absolute path.
+     *
+     * If not set, the operating system's designated temporary directory is
+     * commonly used, but that is implementation defined per plugin.
+     *
+     * Plugins are encouraged to heed this config setting if present, to allow
+     * deployment in severely locked-down or limited environments.
+     */
+    workingDirectory?: string;
+
     /** Database connection configuration, select base database type using the `client` field */
     database: {
       /** Default database client to use */
@@ -77,17 +93,17 @@ export interface Config {
        */
       connection:
         | string
-        | Partial<{
+        | {
             /**
              * Password that belongs to the client User
              * @visibility secret
              */
-            password: string;
+            password?: string;
             /**
              * Other connection settings
              */
             [key: string]: unknown;
-          }>;
+          };
       /** Database name prefix override */
       prefix?: string;
       /**
@@ -149,6 +165,8 @@ export interface Config {
     cache?:
       | {
           store: 'memory';
+          /** An optional default TTL (in milliseconds). */
+          defaultTtl?: number;
         }
       | {
           store: 'redis';
@@ -157,6 +175,8 @@ export interface Config {
            * @visibility secret
            */
           connection: string;
+          /** An optional default TTL (in milliseconds). */
+          defaultTtl?: number;
         }
       | {
           store: 'memcache';
@@ -165,6 +185,8 @@ export interface Config {
            * @visibility secret
            */
           connection: string;
+          /** An optional default TTL (in milliseconds). */
+          defaultTtl?: number;
         };
 
     cors?: {
@@ -215,25 +237,5 @@ export interface Config {
      * remove the default value that Backstage puts in place for that policy.
      */
     csp?: { [policyId: string]: string[] | false };
-  };
-
-  /** Discovery options. */
-  discovery?: {
-    /**
-     * Endpoints
-     *
-     * A list of target baseUrls and the associated plugins.
-     */
-    endpoints: {
-      /**
-       * The target baseUrl to use for the plugin
-       *
-       * Can be either a string or an object with internal and external keys.
-       * Targets with `{{pluginId}}` or `{{ pluginId }} in the url will be replaced with the pluginId.
-       */
-      target: string | { internal: string; external: string };
-      /** Array of plugins which use the target baseUrl. */
-      plugins: string[];
-    }[];
   };
 }

@@ -6,7 +6,7 @@ This is the backend part of the `code-coverage` plugin. It takes care of process
 
 ```sh
 # From your Backstage root directory
-yarn add --cwd packages/backend @backstage/plugin-code-coverage-backend
+yarn --cwd packages/backend add @backstage/plugin-code-coverage-backend
 ```
 
 First create a `codecoverage.ts` file here: `packages/backend/src/plugins`. Now add the following as its content:
@@ -67,6 +67,16 @@ diff --git a/packages/backend/src/index.ts b/packages/backend/src/index.ts
    apiRouter.use(notFoundHandler());
 ```
 
+## New Backend System
+
+The code coverage backend plugin has support for the [new backend system](https://backstage.io/docs/backend-system/), here's how you can set that up:
+
+In your `packages/backend/src/index.ts` make the following changes:
+
+```diff
++ backend.add(import('@backstage/plugin-code-coverage-backend'));
+```
+
 ## Configuring your entity
 
 In order to use this plugin, you must set the `backstage.io/code-coverage` annotation.
@@ -115,6 +125,24 @@ Example:
 
 ```json
 // curl -X POST -H "Content-Type:text/xml" -d @jacoco.xml "localhost:7007/api/code-coverage/report?entity=component:default/entity-name&coverageType=jacoco"
+{
+  "links": [
+    {
+      "href": "http://localhost:7007/api/code-coverage/report?entity=component:default/entity-name",
+      "rel": "coverage"
+    }
+  ]
+}
+```
+
+### Adding a LCOV report
+
+POST a LCOV INFO file to `/report`
+
+Example:
+
+```json
+// curl -X POST -H "Content-Type:text/plain" -d @coverage.info "localhost:7007/api/code-coverage/report?entity=component:default/entity-name&coverageType=lcov"
 {
   "links": [
     {
@@ -216,4 +244,13 @@ Example
     }
   ]
 }
+```
+
+### Configuration
+
+Configure the plugin in your `app-config.yaml`:
+
+```yaml
+codeCoverage:
+  bodySizeLimit: 100kb # Defaults to 100kb, see https://www.npmjs.com/package/body-parser#limit
 ```

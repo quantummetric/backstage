@@ -15,44 +15,46 @@
  */
 
 import { ExploreTool } from '@backstage/plugin-explore-react';
-import { BackstageTheme } from '@backstage/theme';
-import {
-  Box,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Chip,
-  makeStyles,
-  Typography,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
+import Chip from '@material-ui/core/Chip';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import { LinkButton } from '@backstage/core-components';
 import classNames from 'classnames';
 import React from 'react';
 
 // TODO: Align styling between Domain and ToolCard
 
-const useStyles = makeStyles<BackstageTheme>(theme => ({
-  media: {
-    height: 128,
+const useStyles = makeStyles<Theme>(
+  theme => ({
+    media: {
+      height: 128,
+    },
+    mediaContain: {
+      backgroundSize: 'contain',
+    },
+    lifecycle: {
+      lineHeight: '0.8em',
+      color: theme.palette.common.white,
+    },
+    ga: {
+      backgroundColor: theme.palette.status.ok,
+    },
+    alpha: {
+      backgroundColor: theme.palette.status.error,
+    },
+    beta: {
+      backgroundColor: theme.palette.status.warning,
+    },
+  }),
+  {
+    name: 'ExploreToolCard',
   },
-  mediaContain: {
-    backgroundSize: 'contain',
-  },
-  lifecycle: {
-    lineHeight: '0.8em',
-    color: theme.palette.common.white,
-  },
-  ga: {
-    backgroundColor: theme.palette.status.ok,
-  },
-  alpha: {
-    backgroundColor: theme.palette.status.error,
-  },
-  beta: {
-    backgroundColor: theme.palette.status.warning,
-  },
-}));
+);
 
 type Props = {
   card: ExploreTool;

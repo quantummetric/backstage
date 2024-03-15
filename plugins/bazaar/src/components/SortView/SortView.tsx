@@ -18,16 +18,22 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Content, SupportButton } from '@backstage/core-components';
 import { AddProjectDialog } from '../AddProjectDialog';
 import { ProjectPreview } from '../ProjectPreview/ProjectPreview';
-import { Button, makeStyles } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import { makeStyles } from '@material-ui/core/styles';
 import useAsyncFn from 'react-use/lib/useAsyncFn';
 import { Entity, stringifyEntityRef } from '@backstage/catalog-model';
 import { useApi } from '@backstage/core-plugin-api';
 import { catalogApiRef } from '@backstage/plugin-catalog-react';
 import { BazaarProject } from '../../types';
 import { bazaarApiRef } from '../../api';
-import { Alert } from '@material-ui/lab';
+import Alert from '@material-ui/lab/Alert';
 import SearchBar from 'material-ui-search-bar';
-import { sortByDate, sortByMembers, sortByTitle } from '../../util/sortMethods';
+import {
+  sortByDate,
+  sortByMembers,
+  sortByTitle,
+  sortByTitleDescending,
+} from '../../util/sortMethods';
 import { SortMethodSelector } from '../SortMethodSelector';
 import { fetchCatalogItems } from '../../util/fetchMethods';
 import { parseBazaarProject } from '../../util/parseMethods';
@@ -78,7 +84,12 @@ export const SortView = (props: SortViewProps) => {
   const bazaarApi = useApi(bazaarApiRef);
   const catalogApi = useApi(catalogApiRef);
   const classes = useStyles();
-  const sortMethods = [sortByDate, sortByTitle, sortByMembers];
+  const sortMethods = [
+    sortByDate,
+    sortByTitle,
+    sortByTitleDescending,
+    sortByMembers,
+  ];
   const [sortMethodNbr, setSortMethodNbr] = useState(0);
   const [openAdd, setOpenAdd] = useState(false);
   const [searchValue, setSearchValue] = useState('');

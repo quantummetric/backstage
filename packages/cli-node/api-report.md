@@ -53,9 +53,15 @@ export interface BackstagePackageJson {
     access?: 'public' | 'restricted';
     directory?: string;
     registry?: string;
-    alphaTypes?: string;
-    betaTypes?: string;
   };
+  // (undocumented)
+  repository?:
+    | string
+    | {
+        type: string;
+        url: string;
+        directory: string;
+      };
   // (undocumented)
   scripts?: {
     [key: string]: string;

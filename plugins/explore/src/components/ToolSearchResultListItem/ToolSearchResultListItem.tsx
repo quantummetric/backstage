@@ -15,13 +15,11 @@
  */
 
 import React, { ReactNode } from 'react';
-import {
-  Box,
-  Chip,
-  ListItemIcon,
-  ListItemText,
-  makeStyles,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Chip from '@material-ui/core/Chip';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import { makeStyles } from '@material-ui/core/styles';
 import { Link } from '@backstage/core-components';
 import {
   IndexableDocument,
@@ -29,16 +27,19 @@ import {
 } from '@backstage/plugin-search-common';
 import { HighlightedSearchResultText } from '@backstage/plugin-search-react';
 
-const useStyles = makeStyles({
-  flexContainer: {
-    flexWrap: 'wrap',
+const useStyles = makeStyles(
+  {
+    flexContainer: {
+      flexWrap: 'wrap',
+    },
+    itemText: {
+      width: '100%',
+      wordBreak: 'break-all',
+      marginBottom: '1rem',
+    },
   },
-  itemText: {
-    width: '100%',
-    wordBreak: 'break-all',
-    marginBottom: '1rem',
-  },
-});
+  { name: 'ExploreToolSearchResultListItem' },
+);
 
 /**
  * Props for {@link ToolSearchResultListItem}.

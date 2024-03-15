@@ -18,24 +18,23 @@ import { parseEntityRef } from '@backstage/catalog-model';
 import { identityApiRef, useApi } from '@backstage/core-plugin-api';
 import { humanizeEntityRef } from '@backstage/plugin-catalog-react';
 import { PlaylistMetadata } from '@backstage/plugin-playlist-common';
-import {
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  makeStyles,
-  MenuItem,
-  LinearProgress,
-  Radio,
-  RadioGroup,
-  Select,
-  TextField,
-} from '@material-ui/core';
-import React from 'react';
+import { playlistApiRef } from '../../api';
+import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
+import { makeStyles } from '@material-ui/core/styles';
+import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import useAsync from 'react-use/lib/useAsync';
 import useAsyncFn from 'react-use/lib/useAsyncFn';
@@ -74,12 +73,28 @@ export const PlaylistEditDialog = ({
 }: PlaylistEditDialogProps) => {
   const classes = useStyles();
   const identityApi = useApi(identityApiRef);
+  const playlistApi = useApi(playlistApiRef);
+  const [playlistPromise] = useState(() =>
+    playlistApi.getAllPlaylists({}).catch(() => {
+      // We ensure that this promise never can throw, to make its usage simpler in the code below
+      return [];
+    }),
+  );
 
   const { loading: loadingOwnership, value: ownershipRefs } =
     useAsync(async () => {
       const { ownershipEntityRefs } = await identityApi.getBackstageIdentity();
       return ownershipEntityRefs;
     }, []);
+
+  const nameIsUnique = async (name: string) => {
+    const playlists = await playlistPromise;
+    if (name !== playlist.name && playlists.some(p => p.name === name)) {
+      return 'A playlist with this name already exists';
+    }
+
+    return true;
+  };
 
   const defaultValues = {
     ...playlist,
@@ -117,13 +132,17 @@ export const PlaylistEditDialog = ({
         <Controller
           name="name"
           control={control}
-          rules={{ required: true }}
+          rules={{
+            required: true,
+            validate: value => nameIsUnique(value),
+          }}
           render={({ field }) => (
             <TextField
               {...field}
               disabled={saving.loading}
               data-testid="edit-dialog-name-input"
               error={!!errors.name}
+              helperText={errors.name?.message}
               fullWidth
               label="Name"
               margin="dense"

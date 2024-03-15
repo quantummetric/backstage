@@ -8,7 +8,9 @@
 import { ApiRef } from '@backstage/core-plugin-api';
 import { BackstagePlugin } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
+import { JSX as JSX_2 } from 'react';
 import { OAuthApi } from '@backstage/core-plugin-api';
+import { default as React_2 } from 'react';
 import { RouteRef } from '@backstage/core-plugin-api';
 
 // @public (undocumented)
@@ -56,17 +58,22 @@ export const CLOUDBUILD_ANNOTATION = 'google.com/cloudbuild-project-slug';
 export type CloudbuildApi = {
   listWorkflowRuns: (options: {
     projectId: string;
+    location: string;
+    cloudBuildFilter: string;
   }) => Promise<ActionsListWorkflowRunsForRepoResponseData>;
   getWorkflow: (options: {
     projectId: string;
+    location: string;
     id: string;
   }) => Promise<ActionsGetWorkflowResponseData>;
   getWorkflowRun: (options: {
     projectId: string;
+    location: string;
     id: string;
   }) => Promise<ActionsGetWorkflowResponseData>;
   reRunWorkflow: (options: {
     projectId: string;
+    location: string;
     runId: string;
   }) => Promise<any>;
 };
@@ -82,19 +89,27 @@ export class CloudbuildClient implements CloudbuildApi {
   // (undocumented)
   getWorkflow(options: {
     projectId: string;
+    location: string;
     id: string;
   }): Promise<ActionsGetWorkflowResponseData>;
   // (undocumented)
   getWorkflowRun(options: {
     projectId: string;
+    location: string;
     id: string;
   }): Promise<ActionsGetWorkflowResponseData>;
   // (undocumented)
   listWorkflowRuns(options: {
     projectId: string;
+    location: string;
+    cloudBuildFilter: string;
   }): Promise<ActionsListWorkflowRunsForRepoResponseData>;
   // (undocumented)
-  reRunWorkflow(options: { projectId: string; runId: string }): Promise<void>;
+  reRunWorkflow(options: {
+    projectId: string;
+    location: string;
+    runId: string;
+  }): Promise<void>;
 }
 
 // @public (undocumented)
@@ -102,24 +117,23 @@ const cloudbuildPlugin: BackstagePlugin<
   {
     entityContent: RouteRef<undefined>;
   },
-  {},
   {}
 >;
 export { cloudbuildPlugin };
 export { cloudbuildPlugin as plugin };
 
 // @public (undocumented)
-export const EntityCloudbuildContent: () => JSX.Element;
+export const EntityCloudbuildContent: () => JSX_2.Element;
 
 // @public (undocumented)
 export const EntityLatestCloudbuildRunCard: (props: {
   branch: string;
-}) => JSX.Element;
+}) => JSX_2.Element;
 
 // @public (undocumented)
 export const EntityLatestCloudbuildsForBranchCard: (props: {
   branch: string;
-}) => JSX.Element;
+}) => JSX_2.Element;
 
 // @public (undocumented)
 export interface FETCHSOURCE {
@@ -135,12 +149,14 @@ export { isCloudbuildAvailable };
 export { isCloudbuildAvailable as isPluginApplicableToEntity };
 
 // @public (undocumented)
-export const LatestWorkflowRunCard: (props: { branch: string }) => JSX.Element;
+export const LatestWorkflowRunCard: (props: {
+  branch: string;
+}) => React_2.JSX.Element;
 
 // @public (undocumented)
 export const LatestWorkflowsForBranchCard: (props: {
   branch: string;
-}) => JSX.Element;
+}) => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface Options {
@@ -181,7 +197,7 @@ export interface Results {
 }
 
 // @public (undocumented)
-export const Router: () => JSX.Element;
+export const Router: () => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface Source {
@@ -232,9 +248,9 @@ export interface StorageSource {
 // @public (undocumented)
 export interface Substitutions {
   // (undocumented)
-  BRANCH_NAME: string;
-  // (undocumented)
   COMMIT_SHA: string;
+  // (undocumented)
+  REF_NAME: string;
   // (undocumented)
   REPO_NAME: string;
   // (undocumented)

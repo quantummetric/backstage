@@ -27,7 +27,7 @@ import {
   catalogApiRef,
   humanizeEntityRef,
 } from '@backstage/plugin-catalog-react';
-import { TextField } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Autocomplete, {
   AutocompleteChangeReason,
@@ -67,8 +67,11 @@ export const EntityPicker = (props: EntityPickerProps) => {
   const catalogApi = useApi(catalogApiRef);
 
   const { value: entities, loading } = useAsync(async () => {
+    const fields = ['metadata.name', 'metadata.namespace', 'kind'];
     const { items } = await catalogApi.getEntities(
-      catalogFilter ? { filter: catalogFilter } : undefined,
+      catalogFilter
+        ? { filter: catalogFilter, fields }
+        : { filter: undefined, fields },
     );
     return items;
   });
@@ -123,11 +126,17 @@ export const EntityPicker = (props: EntityPickerProps) => {
     [onChange, formData, defaultKind, defaultNamespace, allowArbitraryValues],
   );
 
+  // Since free solo can be enabled, attempt to parse as a full entity ref first, then fall
+  // back to the given value.
+  const selectedEntity =
+    entities?.find(e => stringifyEntityRef(e) === formData) ??
+    (allowArbitraryValues && formData ? getLabel(formData) : '');
+
   useEffect(() => {
-    if (entities?.length === 1) {
+    if (entities?.length === 1 && selectedEntity === '') {
       onChange(stringifyEntityRef(entities[0]));
     }
-  }, [entities, onChange]);
+  }, [entities, onChange, selectedEntity]);
 
   return (
     <FormControl
@@ -138,12 +147,7 @@ export const EntityPicker = (props: EntityPickerProps) => {
       <Autocomplete
         disabled={entities?.length === 1}
         id={idSchema?.$id}
-        value={
-          // Since free solo can be enabled, attempt to parse as a full entity ref first, then fall
-          //  back to the given value.
-          entities?.find(e => stringifyEntityRef(e) === formData) ??
-          (allowArbitraryValues && formData ? getLabel(formData) : '')
-        }
+        value={selectedEntity}
         loading={loading}
         onChange={onSelect}
         options={entities || []}

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { BackstageTheme } from '@backstage/theme';
-import { Button, makeStyles, Typography } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import React from 'react';
 import { CodeSnippet } from '@backstage/core-components';
 
@@ -29,11 +30,11 @@ const ENTITY_YAML = `metadata:
 /** @public */
 export type EntityLinksEmptyStateClassKey = 'code';
 
-const useStyles = makeStyles<BackstageTheme>(
+const useStyles = makeStyles(
   theme => ({
     code: {
       borderRadius: 6,
-      margin: `${theme.spacing(2)}px 0px`,
+      margin: theme.spacing(2, 0),
       background:
         theme.palette.type === 'dark' ? '#444' : theme.palette.common.white,
     },

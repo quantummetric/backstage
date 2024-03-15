@@ -26,19 +26,19 @@ import Router from 'express-promise-router';
 import {
   CacheManager,
   createServiceBuilder,
+  DatabaseManager,
   getRootLogger,
+  HostDiscovery,
   loadBackendConfig,
   notFoundHandler,
-  DatabaseManager,
-  HostDiscovery,
+  ServerTokenManager,
   UrlReaders,
   useHotMemoize,
-  ServerTokenManager,
 } from '@backstage/backend-common';
 import { TaskScheduler } from '@backstage/backend-tasks';
 import { Config } from '@backstage/config';
 import healthcheck from './plugins/healthcheck';
-import { metricsInit, metricsHandler } from './metrics';
+import { metricsHandler, metricsInit } from './metrics';
 import auth from './plugins/auth';
 import azureDevOps from './plugins/azure-devops';
 import catalog from './plugins/catalog';
@@ -55,7 +55,6 @@ import search from './plugins/search';
 import techdocs from './plugins/techdocs';
 import techInsights from './plugins/techInsights';
 import todo from './plugins/todo';
-import graphql from './plugins/graphql';
 import app from './plugins/app';
 import badges from './plugins/badges';
 import jenkins from './plugins/jenkins';
@@ -66,13 +65,16 @@ import lighthouse from './plugins/lighthouse';
 import linguist from './plugins/linguist';
 import devTools from './plugins/devtools';
 import nomad from './plugins/nomad';
+import signals from './plugins/signals';
 import { PluginEnvironment } from './types';
 import { ServerPermissionClient } from '@backstage/plugin-permission-node';
 import { DefaultIdentityClient } from '@backstage/plugin-auth-node';
 import { DefaultEventBroker } from '@backstage/plugin-events-backend';
+import { DefaultEventsService } from '@backstage/plugin-events-node';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { metrics } from '@opentelemetry/api';
+import { DefaultSignalsService } from '@backstage/plugin-signals-node';
 
 // Expose opentelemetry metrics using a Prometheus exporter on
 // http://localhost:9464/metrics . See prometheus.yml in packages/backend for
@@ -93,12 +95,19 @@ function makeCreateEnv(config: Config) {
   });
   const databaseManager = DatabaseManager.fromConfig(config, { logger: root });
   const cacheManager = CacheManager.fromConfig(config);
-  const taskScheduler = TaskScheduler.fromConfig(config);
+  const taskScheduler = TaskScheduler.fromConfig(config, { databaseManager });
   const identity = DefaultIdentityClient.create({
     discovery,
   });
 
-  const eventBroker = new DefaultEventBroker(root.child({ type: 'plugin' }));
+  const eventsService = DefaultEventsService.create({ logger: root });
+  const eventBroker = new DefaultEventBroker(
+    root.child({ type: 'plugin' }),
+    eventsService,
+  );
+  const signalsService = DefaultSignalsService.create({
+    events: eventsService,
+  });
 
   root.info(`Created UrlReader ${reader}`);
 
@@ -115,11 +124,13 @@ function makeCreateEnv(config: Config) {
       config,
       reader,
       eventBroker,
+      events: eventsService,
       discovery,
       tokenManager,
       permissions,
       scheduler,
       identity,
+      signals: signalsService,
     };
   };
 }
@@ -155,7 +166,6 @@ async function main() {
   const todoEnv = useHotMemoize(module, () => createEnv('todo'));
   const kubernetesEnv = useHotMemoize(module, () => createEnv('kubernetes'));
   const kafkaEnv = useHotMemoize(module, () => createEnv('kafka'));
-  const graphqlEnv = useHotMemoize(module, () => createEnv('graphql'));
   const appEnv = useHotMemoize(module, () => createEnv('app'));
   const badgesEnv = useHotMemoize(module, () => createEnv('badges'));
   const jenkinsEnv = useHotMemoize(module, () => createEnv('jenkins'));
@@ -174,6 +184,7 @@ async function main() {
   const linguistEnv = useHotMemoize(module, () => createEnv('linguist'));
   const devToolsEnv = useHotMemoize(module, () => createEnv('devtools'));
   const nomadEnv = useHotMemoize(module, () => createEnv('nomad'));
+  const signalsEnv = useHotMemoize(module, () => createEnv('signals'));
 
   const apiRouter = Router();
   apiRouter.use('/catalog', await catalog(catalogEnv));
@@ -190,7 +201,6 @@ async function main() {
   apiRouter.use('/kubernetes', await kubernetes(kubernetesEnv));
   apiRouter.use('/kafka', await kafka(kafkaEnv));
   apiRouter.use('/proxy', await proxy(proxyEnv));
-  apiRouter.use('/graphql', await graphql(graphqlEnv));
   apiRouter.use('/badges', await badges(badgesEnv));
   apiRouter.use('/jenkins', await jenkins(jenkinsEnv));
   apiRouter.use('/permission', await permission(permissionEnv));
@@ -201,6 +211,7 @@ async function main() {
   apiRouter.use('/linguist', await linguist(linguistEnv));
   apiRouter.use('/devtools', await devTools(devToolsEnv));
   apiRouter.use('/nomad', await nomad(nomadEnv));
+  apiRouter.use('/signals', await signals(signalsEnv));
   apiRouter.use(notFoundHandler());
 
   await lighthouse(lighthouseEnv);

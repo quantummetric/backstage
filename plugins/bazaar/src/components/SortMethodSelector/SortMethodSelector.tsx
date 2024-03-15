@@ -15,7 +15,10 @@
  */
 
 import React, { ChangeEvent, ReactNode } from 'react';
-import { FormControl, MenuItem, Select, makeStyles } from '@material-ui/core';
+import FormControl from '@material-ui/core/FormControl';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
   select: {
@@ -50,7 +53,8 @@ export const SortMethodSelector = ({
       >
         <MenuItem value={0}>Latest updated</MenuItem>
         <MenuItem value={1}>A-Z</MenuItem>
-        <MenuItem value={2}>Most members</MenuItem>
+        <MenuItem value={2}>Z-A</MenuItem>
+        <MenuItem value={3}>Most members</MenuItem>
       </Select>
     </FormControl>
   );

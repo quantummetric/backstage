@@ -23,6 +23,26 @@ import { createServiceRef } from '../system';
  */
 export namespace coreServices {
   /**
+   * The service reference for the plugin scoped {@link AuthService}.
+   *
+   * @public
+   */
+  export const auth = createServiceRef<import('./AuthService').AuthService>({
+    id: 'core.auth',
+  });
+
+  /**
+   * The service reference for the plugin scoped {@link UserInfoService}.
+   *
+   * @public
+   */
+  export const userInfo = createServiceRef<
+    import('./UserInfoService').UserInfoService
+  >({
+    id: 'core.userInfo',
+  });
+
+  /**
    * The service reference for the plugin scoped {@link CacheService}.
    *
    * @public
@@ -32,13 +52,13 @@ export namespace coreServices {
   });
 
   /**
-   * The service reference for the root scoped {@link ConfigService}.
+   * The service reference for the root scoped {@link RootConfigService}.
    *
    * @public
    */
-  export const config = createServiceRef<
-    import('./ConfigService').ConfigService
-  >({ id: 'core.config', scope: 'root' });
+  export const rootConfig = createServiceRef<
+    import('./RootConfigService').RootConfigService
+  >({ id: 'core.rootConfig', scope: 'root' });
 
   /**
    * The service reference for the plugin scoped {@link DatabaseService}.
@@ -57,6 +77,15 @@ export namespace coreServices {
   export const discovery = createServiceRef<
     import('./DiscoveryService').DiscoveryService
   >({ id: 'core.discovery' });
+
+  /**
+   * The service reference for the plugin scoped {@link HttpAuthService}.
+   *
+   * @public
+   */
+  export const httpAuth = createServiceRef<
+    import('./HttpAuthService').HttpAuthService
+  >({ id: 'core.httpAuth' });
 
   /**
    * The service reference for the plugin scoped {@link HttpRouterService}.

@@ -28,7 +28,7 @@ The Dynatrace plugin will require the following information, to be used in the c
 
 ```
 # From your Backstage root directory
-yarn add --cwd packages/app @backstage/plugin-dynatrace
+yarn --cwd packages/app add @backstage/plugin-dynatrace
 ```
 
 2. We created in our catalog the interface for using the integration with Dynatrace.
@@ -62,10 +62,11 @@ This plugin requires a proxy endpoint for Dynatrace configured in `app-config.ya
 
 ```yaml
 proxy:
-  '/dynatrace':
-    target: 'https://example.dynatrace.com/api/v2'
-    headers:
-      Authorization: 'Api-Token ${DYNATRACE_ACCESS_TOKEN}'
+  endpoints:
+    '/dynatrace':
+      target: 'https://example.dynatrace.com/api/v2'
+      headers:
+        Authorization: 'Api-Token ${DYNATRACE_ACCESS_TOKEN}'
 ```
 
 It also requires a `baseUrl` for rendering links to problems in the table like so:
@@ -108,6 +109,10 @@ metadata:
 The annotation can also contain a comma or space separated list of Synthetic Ids to surface details for multiple monitors!
 
 The `SYNTHETIC_ID` can be found in Dynatrace by browsing to the Synthetic monitor. It will be located in the browser address bar in the resource path - `https://example.dynatrace.com/ui/http-monitor/HTTP_CHECK-1234` for an Http check, or `https://example.dynatrace.com/ui/browser-monitor/SYNTHETIC_TEST-1234` for a browser clickpath.
+
+## Contribution
+
+This plugin was originally built by [TELUS](https://github.com/telus).
 
 ## Disclaimer
 

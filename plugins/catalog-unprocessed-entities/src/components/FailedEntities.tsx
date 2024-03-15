@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
+import React, { useState } from 'react';
 
 import {
   ErrorPanel,
@@ -23,15 +23,16 @@ import {
   TableColumn,
 } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
-import { BackstageThemeOptions } from '@backstage/theme';
-import { Box, Typography, makeStyles } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Typography from '@material-ui/core/Typography';
+import { Theme, makeStyles } from '@material-ui/core/styles';
 
 import { UnprocessedEntity } from '../types';
 import { EntityDialog } from './EntityDialog';
 import { catalogUnprocessedEntitiesApiRef } from '../api';
 import useAsync from 'react-use/lib/useAsync';
 
-const useStyles = makeStyles((theme: BackstageThemeOptions) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   errorBox: {
     color: theme.palette.status.error,
     backgroundColor: theme.palette.errorBackground,
@@ -46,6 +47,7 @@ const useStyles = makeStyles((theme: BackstageThemeOptions) => ({
   successMessage: {
     background: theme.palette.infoBackground,
     color: theme.palette.infoText,
+    padding: theme.spacing(2),
   },
 }));
 
@@ -91,6 +93,7 @@ export const FailedEntities = () => {
     error,
     value: data,
   } = useAsync(async () => await unprocessedApi.failed());
+  const [, setSelectedSearchTerm] = useState<string>('');
 
   if (loading) {
     return <Progress />;
@@ -102,22 +105,33 @@ export const FailedEntities = () => {
   const columns: TableColumn[] = [
     {
       title: <Typography>entityRef</Typography>,
+      sorting: true,
+      field: 'entity_ref',
+      customFilterAndSearch: (query, row: any) =>
+        row.entity_ref
+          .toLocaleUpperCase('en-US')
+          .includes(query.toLocaleUpperCase('en-US')),
       render: (rowData: UnprocessedEntity | {}) =>
         (rowData as UnprocessedEntity).entity_ref,
     },
     {
       title: <Typography>Kind</Typography>,
+      sorting: true,
+      field: 'kind',
       render: (rowData: UnprocessedEntity | {}) =>
         (rowData as UnprocessedEntity).unprocessed_entity.kind,
     },
     {
       title: <Typography>Owner</Typography>,
+      sorting: true,
+      field: 'unprocessed_entity.spec.owner',
       render: (rowData: UnprocessedEntity | {}) =>
         (rowData as UnprocessedEntity).unprocessed_entity.spec?.owner ||
         'unknown',
     },
     {
       title: <Typography>Raw</Typography>,
+      sorting: false,
       render: (rowData: UnprocessedEntity | {}) => (
         <EntityDialog entity={rowData as UnprocessedEntity} />
       ),
@@ -133,6 +147,9 @@ export const FailedEntities = () => {
           <Typography className={classes.successMessage}>
             No failed entities found
           </Typography>
+        }
+        onSearchChange={(searchTerm: string) =>
+          setSelectedSearchTerm(searchTerm)
         }
         detailPanel={({ rowData }) => {
           const errors = (rowData as UnprocessedEntity).errors;

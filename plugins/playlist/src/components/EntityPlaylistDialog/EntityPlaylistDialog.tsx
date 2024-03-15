@@ -27,22 +27,20 @@ import {
   Playlist,
   PlaylistMetadata,
 } from '@backstage/plugin-playlist-common';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  InputAdornment,
-  LinearProgress,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  makeStyles,
-  TextField,
-} from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import TextField from '@material-ui/core/TextField';
+import { makeStyles } from '@material-ui/core/styles';
 import ClearButton from '@material-ui/icons/Clear';
 import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
 import SearchIcon from '@material-ui/icons/Search';
@@ -132,6 +130,11 @@ export const EntityPlaylistDialog = (props: EntityPlaylistDialogProps) => {
           stringifyEntityRef(entity!),
         ]);
         navigate(playlistRoute({ playlistId }));
+        alertApi.post({
+          message: `Added playlist '${playlist.name}'`,
+          severity: 'success',
+          display: 'transient',
+        });
       } catch (e) {
         alertApi.post({
           message: `Failed to add entity to ${singularTitleLowerCase}: ${e}`,

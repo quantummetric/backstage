@@ -17,6 +17,7 @@
 import {
   DatabaseManager,
   getRootLogger,
+  LegacyRootDatabaseService,
   PluginDatabaseManager,
 } from '@backstage/backend-common';
 import { Config } from '@backstage/config';
@@ -37,7 +38,7 @@ export class TaskScheduler {
   static fromConfig(
     config: Config,
     options?: {
-      databaseManager?: DatabaseManager;
+      databaseManager?: LegacyRootDatabaseService;
       logger?: Logger;
     },
   ): TaskScheduler {
@@ -50,7 +51,7 @@ export class TaskScheduler {
   }
 
   constructor(
-    private readonly databaseManager: DatabaseManager,
+    private readonly databaseManager: LegacyRootDatabaseService,
     private readonly logger: Logger,
   ) {}
 
@@ -80,12 +81,14 @@ export class TaskScheduler {
         await migrateBackendTasks(knex);
       }
 
-      const janitor = new PluginTaskSchedulerJanitor({
-        knex,
-        waitBetweenRuns: Duration.fromObject({ minutes: 1 }),
-        logger: opts.logger,
-      });
-      janitor.start();
+      if (process.env.NODE_ENV !== 'test') {
+        const janitor = new PluginTaskSchedulerJanitor({
+          knex,
+          waitBetweenRuns: Duration.fromObject({ minutes: 1 }),
+          logger: opts.logger,
+        });
+        janitor.start();
+      }
 
       return knex;
     });

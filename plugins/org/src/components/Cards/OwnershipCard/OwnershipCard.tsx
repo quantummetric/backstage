@@ -25,10 +25,19 @@ import {
   Switch,
   Tooltip,
 } from '@material-ui/core';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ComponentsGrid } from './ComponentsGrid';
+import { EntityRelationAggregation } from './types';
 
 const useStyles = makeStyles(theme => ({
+  card: {
+    maxHeight: '100%',
+  },
+  cardContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
   list: {
     [theme.breakpoints.down('xs')]: {
       padding: `0 0 12px`,
@@ -49,6 +58,10 @@ const useStyles = makeStyles(theme => ({
       transform: 'unset',
     },
   },
+  grid: {
+    overflowY: 'auto',
+    marginTop: 0,
+  },
 }));
 
 /** @public */
@@ -56,7 +69,7 @@ export const OwnershipCard = (props: {
   variant?: InfoCardVariants;
   entityFilterKind?: string[];
   hideRelationsToggle?: boolean;
-  relationsType?: string;
+  relationsType?: EntityRelationAggregation;
   entityLimit?: number;
 }) => {
   const {
@@ -70,13 +83,25 @@ export const OwnershipCard = (props: {
     hideRelationsToggle === undefined ? false : hideRelationsToggle;
   const classes = useStyles();
   const { entity } = useEntity();
-  const isGroup = entity.kind === 'Group';
+
+  const defaultRelationsType = entity.kind === 'User' ? 'aggregated' : 'direct';
   const [getRelationsType, setRelationsType] = useState(
-    relationsType || 'direct',
+    relationsType ?? defaultRelationsType,
   );
 
+  useEffect(() => {
+    if (!relationsType) {
+      setRelationsType(defaultRelationsType);
+    }
+  }, [setRelationsType, defaultRelationsType, relationsType]);
+
   return (
-    <InfoCard title="Ownership" variant={variant}>
+    <InfoCard
+      title="Ownership"
+      variant={variant}
+      className={classes.card}
+      cardClassName={classes.cardContent}
+    >
       {!relationsToggle && (
         <List dense>
           <ListItem className={classes.list}>
@@ -95,14 +120,13 @@ export const OwnershipCard = (props: {
                 <Switch
                   color="primary"
                   checked={getRelationsType !== 'direct'}
-                  onChange={() =>
-                    getRelationsType === 'direct'
-                      ? setRelationsType('aggregated')
-                      : setRelationsType('direct')
-                  }
+                  onChange={() => {
+                    const updatedRelationsType =
+                      getRelationsType === 'direct' ? 'aggregated' : 'direct';
+                    setRelationsType(updatedRelationsType);
+                  }}
                   name="pin"
                   inputProps={{ 'aria-label': 'Ownership Type Switch' }}
-                  disabled={!isGroup}
                 />
               </Tooltip>
               Aggregated Relations
@@ -111,10 +135,10 @@ export const OwnershipCard = (props: {
         </List>
       )}
       <ComponentsGrid
+        className={classes.grid}
         entity={entity}
         entityLimit={entityLimit}
         relationsType={getRelationsType}
-        isGroup={isGroup}
         entityFilterKind={entityFilterKind}
       />
     </InfoCard>

@@ -15,14 +15,11 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import ReactDom from 'react-dom';
-import {
-  withStyles,
-  Theme,
-  ThemeProvider,
-  SvgIcon,
-  Tooltip,
-} from '@material-ui/core';
+import { renderReactElement } from './renderReactElement';
+import { ThemeProvider } from '@material-ui/core/styles';
+import SvgIcon from '@material-ui/core/SvgIcon';
+import Tooltip from '@material-ui/core/Tooltip';
+import { withStyles, Theme } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import type { Transformer } from './transformer';
 import useCopyToClipboard from 'react-use/lib/useCopyToClipboard';
@@ -91,7 +88,7 @@ export const copyToClipboard = (theme: Theme): Transformer => {
       const text = code.textContent || '';
       const container = document.createElement('div');
       code?.parentElement?.prepend(container);
-      ReactDom.render(
+      renderReactElement(
         <ThemeProvider theme={theme}>
           <CopyToClipboardButton text={text} />
         </ThemeProvider>,

@@ -25,9 +25,13 @@ import {
 } from '@backstage/backend-plugin-api';
 
 import {
+  DocsBuildStrategy,
   Preparers,
   Generators,
   Publisher,
+  techdocsBuildsExtensionPoint,
+  techdocsGeneratorExtensionPoint,
+  TechdocsGenerator,
 } from '@backstage/plugin-techdocs-node';
 import Docker from 'dockerode';
 import { createRouter } from '@backstage/plugin-techdocs-backend';
@@ -39,16 +43,48 @@ import { createRouter } from '@backstage/plugin-techdocs-backend';
 export const techdocsPlugin = createBackendPlugin({
   pluginId: 'techdocs',
   register(env) {
+    let docsBuildStrategy: DocsBuildStrategy | undefined;
+    env.registerExtensionPoint(techdocsBuildsExtensionPoint, {
+      setBuildStrategy(buildStrategy: DocsBuildStrategy) {
+        if (docsBuildStrategy) {
+          throw new Error('DocsBuildStrategy may only be set once');
+        }
+        docsBuildStrategy = buildStrategy;
+      },
+    });
+
+    let customTechdocsGenerator: TechdocsGenerator | undefined;
+    env.registerExtensionPoint(techdocsGeneratorExtensionPoint, {
+      setTechdocsGenerator(generator: TechdocsGenerator) {
+        if (customTechdocsGenerator) {
+          throw new Error('TechdocsGenerator may only be set once');
+        }
+
+        customTechdocsGenerator = generator;
+      },
+    });
+
     env.registerInit({
       deps: {
-        config: coreServices.config,
+        config: coreServices.rootConfig,
         logger: coreServices.logger,
         urlReader: coreServices.urlReader,
         http: coreServices.httpRouter,
         discovery: coreServices.discovery,
         cache: coreServices.cache,
+        httpAuth: coreServices.httpAuth,
+        auth: coreServices.auth,
       },
-      async init({ config, logger, urlReader, http, discovery, cache }) {
+      async init({
+        config,
+        logger,
+        urlReader,
+        http,
+        discovery,
+        cache,
+        httpAuth,
+        auth,
+      }) {
         const winstonLogger = loggerToWinstonLogger(logger);
         // Preparers are responsible for fetching source files for documentation.
         const preparers = await Preparers.fromConfig(config, {
@@ -64,6 +100,7 @@ export const techdocsPlugin = createBackendPlugin({
         const generators = await Generators.fromConfig(config, {
           logger: winstonLogger,
           containerRunner,
+          customGenerator: customTechdocsGenerator,
         });
 
         // Publisher is used for
@@ -82,13 +119,21 @@ export const techdocsPlugin = createBackendPlugin({
           await createRouter({
             logger: winstonLogger,
             cache: cacheManager,
+            docsBuildStrategy,
             preparers,
             generators,
             publisher,
             config,
             discovery,
+            httpAuth,
+            auth,
           }),
         );
+
+        http.addAuthPolicy({
+          path: '/static',
+          allow: 'user-cookie',
+        });
       },
     });
   },

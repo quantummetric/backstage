@@ -5,6 +5,8 @@
 ```ts
 /// <reference types="node" />
 
+import { AuthorizePermissionRequest } from '@backstage/plugin-permission-common';
+import { AuthorizePermissionResponse } from '@backstage/plugin-permission-common';
 import { Config } from '@backstage/config';
 import { Handler } from 'express';
 import { IdentityApi } from '@backstage/plugin-auth-node';
@@ -13,7 +15,47 @@ import { JsonValue } from '@backstage/types';
 import { Knex } from 'knex';
 import { PermissionEvaluator } from '@backstage/plugin-permission-common';
 import { PluginTaskScheduler } from '@backstage/backend-tasks';
+import { QueryPermissionRequest } from '@backstage/plugin-permission-common';
+import { QueryPermissionResponse } from '@backstage/plugin-permission-common';
 import { Readable } from 'stream';
+import { Request as Request_2 } from 'express';
+import { Response as Response_2 } from 'express';
+
+// @public (undocumented)
+export interface AuthService {
+  // (undocumented)
+  authenticate(
+    token: string,
+    options?: {
+      allowLimitedAccess?: boolean;
+    },
+  ): Promise<BackstageCredentials>;
+  // (undocumented)
+  getLimitedUserToken(
+    credentials: BackstageCredentials<BackstageUserPrincipal>,
+  ): Promise<{
+    token: string;
+    expiresAt: Date;
+  }>;
+  // (undocumented)
+  getNoneCredentials(): Promise<BackstageCredentials<BackstageNonePrincipal>>;
+  // (undocumented)
+  getOwnServiceCredentials(): Promise<
+    BackstageCredentials<BackstageServicePrincipal>
+  >;
+  // (undocumented)
+  getPluginRequestToken(options: {
+    onBehalfOf: BackstageCredentials;
+    targetPluginId: string;
+  }): Promise<{
+    token: string;
+  }>;
+  // (undocumented)
+  isPrincipal<TType extends keyof BackstagePrincipalTypes>(
+    credentials: BackstageCredentials,
+    type: TType,
+  ): credentials is BackstageCredentials<BackstagePrincipalTypes[TType]>;
+}
 
 // @public (undocumented)
 export interface BackendFeature {
@@ -31,6 +73,11 @@ export interface BackendModuleConfig {
 
 // @public
 export interface BackendModuleRegistrationPoints {
+  // (undocumented)
+  registerExtensionPoint<TExtensionPoint>(
+    ref: ExtensionPoint<TExtensionPoint>,
+    impl: TExtensionPoint,
+  ): void;
   // (undocumented)
   registerInit<
     Deps extends {
@@ -71,6 +118,46 @@ export interface BackendPluginRegistrationPoints {
   }): void;
 }
 
+// @public (undocumented)
+export type BackstageCredentials<TPrincipal = unknown> = {
+  $$type: '@backstage/BackstageCredentials';
+  expiresAt?: Date;
+  principal: TPrincipal;
+};
+
+// @public (undocumented)
+export type BackstageNonePrincipal = {
+  type: 'none';
+};
+
+// @public (undocumented)
+export type BackstagePrincipalTypes = {
+  user: BackstageUserPrincipal;
+  service: BackstageServicePrincipal;
+  none: BackstageNonePrincipal;
+  unknown: unknown;
+};
+
+// @public (undocumented)
+export type BackstageServicePrincipal = {
+  type: 'service';
+  subject: string;
+};
+
+// @public (undocumented)
+export interface BackstageUserInfo {
+  // (undocumented)
+  ownershipEntityRefs: string[];
+  // (undocumented)
+  userEntityRef: string;
+}
+
+// @public (undocumented)
+export type BackstageUserPrincipal = {
+  type: 'user';
+  userEntityRef: string;
+};
+
 // @public
 export interface CacheService {
   delete(key: string): Promise<void>;
@@ -93,15 +180,15 @@ export type CacheServiceSetOptions = {
   ttl?: number;
 };
 
-// @public (undocumented)
-export interface ConfigService extends Config {}
-
 // @public
 export namespace coreServices {
+  const auth: ServiceRef<AuthService, 'plugin'>;
+  const userInfo: ServiceRef<UserInfoService, 'plugin'>;
   const cache: ServiceRef<CacheService, 'plugin'>;
-  const config: ServiceRef<ConfigService, 'root'>;
+  const rootConfig: ServiceRef<RootConfigService, 'root'>;
   const database: ServiceRef<DatabaseService, 'plugin'>;
   const discovery: ServiceRef<DiscoveryService, 'plugin'>;
+  const httpAuth: ServiceRef<HttpAuthService, 'plugin'>;
   const httpRouter: ServiceRef<HttpRouterService, 'plugin'>;
   const lifecycle: ServiceRef<LifecycleService, 'plugin'>;
   const logger: ServiceRef<LoggerService, 'plugin'>;
@@ -117,14 +204,14 @@ export namespace coreServices {
 }
 
 // @public
-export function createBackendModule<TOptions extends [options?: object] = []>(
-  config: BackendModuleConfig | ((...params: TOptions) => BackendModuleConfig),
-): (...params: TOptions) => BackendFeature;
+export function createBackendModule(
+  config: BackendModuleConfig,
+): () => BackendFeature;
 
 // @public
-export function createBackendPlugin<TOptions extends [options?: object] = []>(
-  config: BackendPluginConfig | ((...params: TOptions) => BackendPluginConfig),
-): (...params: TOptions) => BackendFeature;
+export function createBackendPlugin(
+  config: BackendPluginConfig,
+): () => BackendFeature;
 
 // @public
 export function createExtensionPoint<T>(
@@ -136,7 +223,7 @@ export function createServiceFactory<
   TService,
   TImpl extends TService,
   TDeps extends {
-    [name in string]: ServiceRef<unknown>;
+    [name in string]: ServiceRef<unknown, 'root'>;
   },
   TOpts extends object | undefined = undefined,
 >(
@@ -148,24 +235,12 @@ export function createServiceFactory<
   TService,
   TImpl extends TService,
   TDeps extends {
-    [name in string]: ServiceRef<unknown>;
+    [name in string]: ServiceRef<unknown, 'root'>;
   },
   TOpts extends object | undefined = undefined,
 >(
   config: (options?: TOpts) => RootServiceFactoryConfig<TService, TImpl, TDeps>,
 ): (options?: TOpts) => ServiceFactory<TService, 'root'>;
-
-// @public
-export function createServiceFactory<
-  TService,
-  TImpl extends TService,
-  TDeps extends {
-    [name in string]: ServiceRef<unknown>;
-  },
-  TOpts extends object | undefined = undefined,
->(
-  config: (options: TOpts) => RootServiceFactoryConfig<TService, TImpl, TDeps>,
-): (options: TOpts) => ServiceFactory<TService, 'root'>;
 
 // @public
 export function createServiceFactory<
@@ -196,23 +271,6 @@ export function createServiceFactory<
 ): (options?: TOpts) => ServiceFactory<TService, 'plugin'>;
 
 // @public
-export function createServiceFactory<
-  TService,
-  TImpl extends TService,
-  TDeps extends {
-    [name in string]: ServiceRef<unknown>;
-  },
-  TContext = undefined,
-  TOpts extends object | undefined = undefined,
->(
-  config:
-    | PluginServiceFactoryConfig<TService, TContext, TImpl, TDeps>
-    | ((
-        options: TOpts,
-      ) => PluginServiceFactoryConfig<TService, TContext, TImpl, TDeps>),
-): (options: TOpts) => ServiceFactory<TService, 'plugin'>;
-
-// @public
 export function createServiceRef<TService>(
   config: ServiceRefConfig<TService, 'plugin'>,
 ): ServiceRef<TService, 'plugin'>;
@@ -221,15 +279,6 @@ export function createServiceRef<TService>(
 export function createServiceRef<TService>(
   config: ServiceRefConfig<TService, 'root'>,
 ): ServiceRef<TService, 'root'>;
-
-// @public
-export function createSharedEnvironment<
-  TOptions extends [options?: object] = [],
->(
-  config:
-    | SharedBackendEnvironmentConfig
-    | ((...params: TOptions) => SharedBackendEnvironmentConfig),
-): (...options: TOptions) => SharedBackendEnvironment;
 
 // @public
 export interface DatabaseService {
@@ -259,9 +308,40 @@ export interface ExtensionPointConfig {
 }
 
 // @public (undocumented)
+export interface HttpAuthService {
+  // (undocumented)
+  credentials<TAllowed extends keyof BackstagePrincipalTypes = 'unknown'>(
+    req: Request_2<any, any, any, any, any>,
+    options?: {
+      allow?: Array<TAllowed>;
+      allowLimitedAccess?: boolean;
+    },
+  ): Promise<BackstageCredentials<BackstagePrincipalTypes[TAllowed]>>;
+  // (undocumented)
+  issueUserCookie(
+    res: Response_2,
+    options?: {
+      credentials?: BackstageCredentials<BackstageUserPrincipal>;
+    },
+  ): Promise<{
+    expiresAt: Date;
+  }>;
+}
+
+// @public (undocumented)
 export interface HttpRouterService {
   // (undocumented)
+  addAuthPolicy(policy: HttpRouterServiceAuthPolicy): void;
+  // (undocumented)
   use(handler: Handler): void;
+}
+
+// @public (undocumented)
+export interface HttpRouterServiceAuthPolicy {
+  // (undocumented)
+  allow: 'unauthenticated' | 'user-cookie';
+  // (undocumented)
+  path: string;
 }
 
 // @public (undocumented)
@@ -310,7 +390,27 @@ export interface LoggerService {
 }
 
 // @public (undocumented)
-export interface PermissionsService extends PermissionEvaluator {}
+export interface PermissionsService extends PermissionEvaluator {
+  // (undocumented)
+  authorize(
+    requests: AuthorizePermissionRequest[],
+    options?: PermissionsServiceRequestOptions,
+  ): Promise<AuthorizePermissionResponse[]>;
+  // (undocumented)
+  authorizeConditional(
+    requests: QueryPermissionRequest[],
+    options?: PermissionsServiceRequestOptions,
+  ): Promise<QueryPermissionResponse[]>;
+}
+
+// @public
+export type PermissionsServiceRequestOptions =
+  | {
+      token?: string;
+    }
+  | {
+      credentials: BackstageCredentials;
+    };
 
 // @public (undocumented)
 export interface PluginMetadataService {
@@ -352,6 +452,7 @@ export type ReadTreeOptions = {
   ): boolean;
   etag?: string;
   signal?: AbortSignal;
+  token?: string;
 };
 
 // @public
@@ -379,6 +480,7 @@ export type ReadUrlOptions = {
   etag?: string;
   lastModifiedAfter?: Date;
   signal?: AbortSignal;
+  token?: string;
 };
 
 // @public
@@ -388,6 +490,9 @@ export type ReadUrlResponse = {
   etag?: string;
   lastModifiedAt?: Date;
 };
+
+// @public (undocumented)
+export interface RootConfigService extends Config {}
 
 // @public (undocumented)
 export interface RootHttpRouterService {
@@ -423,6 +528,7 @@ export interface SchedulerService extends PluginTaskScheduler {}
 export type SearchOptions = {
   etag?: string;
   signal?: AbortSignal;
+  token?: string;
 };
 
 // @public
@@ -442,9 +548,7 @@ export type SearchResponseFile = {
 export interface ServiceFactory<
   TService = unknown,
   TScope extends 'plugin' | 'root' = 'plugin' | 'root',
-> {
-  // (undocumented)
-  $$type: '@backstage/ServiceFactory';
+> extends BackendFeature {
   // (undocumented)
   service: ServiceRef<TService, TScope>;
 }
@@ -477,18 +581,6 @@ export interface ServiceRefConfig<TService, TScope extends 'root' | 'plugin'> {
 }
 
 // @public
-export interface SharedBackendEnvironment {
-  // (undocumented)
-  $$type: '@backstage/SharedBackendEnvironment';
-}
-
-// @public
-export interface SharedBackendEnvironmentConfig {
-  // (undocumented)
-  services?: ServiceFactoryOrFunction[];
-}
-
-// @public
 export interface TokenManagerService {
   authenticate(token: string): Promise<void>;
   getToken(): Promise<{
@@ -501,5 +593,11 @@ export interface UrlReaderService {
   readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
   readUrl(url: string, options?: ReadUrlOptions): Promise<ReadUrlResponse>;
   search(url: string, options?: SearchOptions): Promise<SearchResponse>;
+}
+
+// @public (undocumented)
+export interface UserInfoService {
+  // (undocumented)
+  getUserInfo(credentials: BackstageCredentials): Promise<BackstageUserInfo>;
 }
 ```

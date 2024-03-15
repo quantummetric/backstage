@@ -18,10 +18,10 @@ import {
   FactRetriever,
   FactRetrieverContext,
   FactRetrieverRegistration,
+  FactRetrieverRegistry,
   TechInsightFact,
   TechInsightsStore,
 } from '@backstage/plugin-tech-insights-node';
-import { FactRetrieverRegistry } from './FactRetrieverRegistry';
 import { Logger } from 'winston';
 import { PluginTaskScheduler } from '@backstage/backend-tasks';
 import { Duration } from 'luxon';
@@ -175,6 +175,7 @@ export class DefaultFactRetrieverEngine implements FactRetrieverEngine {
       try {
         facts = await factRetriever.handler({
           ...this.factRetrieverContext,
+          logger: this.logger.child({ factRetrieverId: factRetriever.id }),
           entityFilter: factRetriever.entityFilter,
         });
         this.logger.debug(

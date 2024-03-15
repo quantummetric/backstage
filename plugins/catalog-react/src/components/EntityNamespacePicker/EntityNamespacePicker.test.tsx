@@ -113,9 +113,7 @@ describe('<EntityNamespacePicker/>', () => {
       </TestApiProvider>,
     );
     await waitFor(() =>
-      expect(updateFilters).toHaveBeenLastCalledWith({
-        namespace: undefined,
-      }),
+      expect(screen.getByTestId('namespace-picker-expand')).toBeInTheDocument(),
     );
 
     fireEvent.click(screen.getByTestId('namespace-picker-expand'));
@@ -241,5 +239,26 @@ describe('<EntityNamespacePicker/>', () => {
     await waitFor(() =>
       expect(screen.queryByText('Namespace')).not.toBeInTheDocument(),
     );
+  });
+  it('renders initially selected namespaces', async () => {
+    render(
+      <TestApiProvider apis={[[catalogApiRef, mockCatalogApiRef]]}>
+        <MockEntityListContextProvider value={{}}>
+          <EntityNamespacePicker
+            initiallySelectedNamespaces={['namespace-2', 'namespace-3']}
+          />
+        </MockEntityListContextProvider>
+      </TestApiProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByText('Namespace')).toBeInTheDocument(),
+    );
+
+    const buttons = screen
+      .getAllByRole('button')
+      .map(o => o.textContent)
+      .filter(b => b);
+
+    expect(buttons).toEqual(['namespace-2', 'namespace-3']);
   });
 });

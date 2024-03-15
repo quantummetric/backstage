@@ -19,69 +19,56 @@ import {
   coreServices,
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
-import { createRouter } from './service/router';
-import { TaskScheduleDefinition } from '@backstage/backend-tasks';
-import { HumanDuration } from '@backstage/types';
 
-/**
- * Options for Linguist backend plugin
- *
- * @public
- */
-export interface LinguistPluginOptions {
-  schedule?: TaskScheduleDefinition;
-  age?: HumanDuration;
-  batchSize?: number;
-  useSourceLocation?: boolean;
-  linguistJsOptions?: Record<string, unknown>;
-  kind?: string[];
-}
+import { createRouterFromConfig } from './service/router';
 
 /**
  * Linguist backend plugin
  *
  * @public
  */
-export const linguistPlugin = createBackendPlugin(
-  (options: LinguistPluginOptions) => ({
-    pluginId: 'linguist',
-    register(env) {
-      env.registerInit({
-        deps: {
-          logger: coreServices.logger,
-          reader: coreServices.urlReader,
-          database: coreServices.database,
-          discovery: coreServices.discovery,
-          scheduler: coreServices.scheduler,
-          tokenManager: coreServices.tokenManager,
-          httpRouter: coreServices.httpRouter,
-        },
-        async init({
-          logger,
-          reader,
-          database,
-          discovery,
-          scheduler,
-          tokenManager,
-          httpRouter,
-        }) {
-          httpRouter.use(
-            await createRouter(
-              {
-                ...options,
-              },
-              {
-                logger: loggerToWinstonLogger(logger),
-                reader,
-                database,
-                discovery,
-                scheduler,
-                tokenManager,
-              },
-            ),
-          );
-        },
-      });
-    },
-  }),
-);
+export const linguistPlugin = createBackendPlugin({
+  pluginId: 'linguist',
+  register(env) {
+    env.registerInit({
+      deps: {
+        auth: coreServices.auth,
+        httpAuth: coreServices.httpAuth,
+        logger: coreServices.logger,
+        config: coreServices.rootConfig,
+        reader: coreServices.urlReader,
+        database: coreServices.database,
+        discovery: coreServices.discovery,
+        scheduler: coreServices.scheduler,
+        tokenManager: coreServices.tokenManager,
+        httpRouter: coreServices.httpRouter,
+      },
+      async init({
+        auth,
+        httpAuth,
+        logger,
+        config,
+        reader,
+        database,
+        discovery,
+        scheduler,
+        tokenManager,
+        httpRouter,
+      }) {
+        httpRouter.use(
+          await createRouterFromConfig({
+            auth,
+            httpAuth,
+            logger: loggerToWinstonLogger(logger),
+            config,
+            reader,
+            database,
+            discovery,
+            scheduler,
+            tokenManager,
+          }),
+        );
+      },
+    });
+  },
+});

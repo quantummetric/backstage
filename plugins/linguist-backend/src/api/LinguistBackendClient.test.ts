@@ -17,7 +17,6 @@
 import {
   getVoidLogger,
   ReadTreeResponse,
-  ServerTokenManager,
   UrlReader,
 } from '@backstage/backend-common';
 import { CatalogApi, GetEntitiesResponse } from '@backstage/catalog-client';
@@ -27,6 +26,7 @@ import { LinguistBackendStore } from '../db';
 import { kindOrDefault, LinguistBackendClient } from './LinguistBackendClient';
 import fs from 'fs-extra';
 import { LINGUIST_ANNOTATION } from '@backstage/plugin-linguist-common';
+import { mockServices } from '@backstage/backend-test-utils';
 
 const linguistResultMock = Promise.resolve({
   files: {
@@ -37,6 +37,9 @@ const linguistResultMock = Promise.resolve({
       '/src/cli.js': 'JavaScript',
       '/readme.md': 'Markdown',
       '/no-lang': null,
+    },
+    alternatives: {
+      '~/alternatives.asc': ['AsciiDoc', 'Public Key'],
     },
   },
   languages: {
@@ -94,13 +97,11 @@ describe('Linguist backend API', () => {
     getEntityByRef: jest.fn(),
   } as any;
 
-  const tokenManager = ServerTokenManager.noop();
-
   const api = new LinguistBackendClient(
     logger,
     store,
     urlReader,
-    tokenManager,
+    mockServices.auth(),
     catalogApi,
   );
 
@@ -227,7 +228,7 @@ describe('Linguist backend API', () => {
       logger,
       store,
       urlReader,
-      tokenManager,
+      mockServices.auth(),
       catalogApi,
       { days: 5 },
     );
@@ -350,7 +351,7 @@ describe('Linguist backend API', () => {
       logger,
       store,
       urlReader,
-      tokenManager,
+      mockServices.auth(),
       catalogApi,
       undefined,
       2,

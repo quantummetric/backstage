@@ -7,8 +7,11 @@
 /// <reference types="webpack-env" />
 
 import { AppConfig } from '@backstage/config';
+import { AuthCallback } from 'isomorphic-git';
+import { AuthService } from '@backstage/backend-plugin-api';
 import { AwsCredentialsManager } from '@backstage/integration-aws-node';
 import { AwsS3Integration } from '@backstage/integration';
+import { AzureDevOpsCredentialsProvider } from '@backstage/integration';
 import { AzureIntegration } from '@backstage/integration';
 import { BackendFeature } from '@backstage/backend-plugin-api';
 import { BitbucketCloudIntegration } from '@backstage/integration';
@@ -18,7 +21,6 @@ import { CacheService as CacheClient } from '@backstage/backend-plugin-api';
 import { CacheServiceOptions as CacheClientOptions } from '@backstage/backend-plugin-api';
 import { CacheServiceSetOptions as CacheClientSetOptions } from '@backstage/backend-plugin-api';
 import { Config } from '@backstage/config';
-import { ConfigService } from '@backstage/backend-plugin-api';
 import cors from 'cors';
 import Docker from 'dockerode';
 import { ErrorRequestHandler } from 'express';
@@ -28,9 +30,12 @@ import { GiteaIntegration } from '@backstage/integration';
 import { GithubCredentialsProvider } from '@backstage/integration';
 import { GithubIntegration } from '@backstage/integration';
 import { GitLabIntegration } from '@backstage/integration';
+import { HostDiscovery as HostDiscovery_2 } from '@backstage/backend-app-api';
+import { HttpAuthService } from '@backstage/backend-plugin-api';
 import { IdentityService } from '@backstage/backend-plugin-api';
 import { isChildPath } from '@backstage/cli-common';
 import { Knex } from 'knex';
+import knexFactory from 'knex';
 import { KubeConfig } from '@kubernetes/client-node';
 import { LifecycleService } from '@backstage/backend-plugin-api';
 import { LoadConfigOptionsRemote } from '@backstage/config-loader';
@@ -51,6 +56,7 @@ import { ReadTreeResponseFile } from '@backstage/backend-plugin-api';
 import { ReadUrlOptions } from '@backstage/backend-plugin-api';
 import { ReadUrlResponse } from '@backstage/backend-plugin-api';
 import { RequestHandler } from 'express';
+import { RootConfigService } from '@backstage/backend-plugin-api';
 import { Router } from 'express';
 import { SchedulerService } from '@backstage/backend-plugin-api';
 import { SearchOptions } from '@backstage/backend-plugin-api';
@@ -61,9 +67,16 @@ import { ServiceRef } from '@backstage/backend-plugin-api';
 import { TokenManagerService as TokenManager } from '@backstage/backend-plugin-api';
 import { TransportStreamOptions } from 'winston-transport';
 import { UrlReaderService as UrlReader } from '@backstage/backend-plugin-api';
+import { UserInfoService } from '@backstage/backend-plugin-api';
 import { V1PodTemplateSpec } from '@kubernetes/client-node';
 import * as winston from 'winston';
 import { Writable } from 'stream';
+
+// @public
+export type AuthCallbackOptions = {
+  onAuth: AuthCallback;
+  logger?: LoggerService;
+};
 
 // @public
 export class AwsS3UrlReader implements UrlReader {
@@ -94,6 +107,7 @@ export class AzureUrlReader implements UrlReader {
     integration: AzureIntegration,
     deps: {
       treeResponseFactory: ReadTreeResponseFactory;
+      credentialsProvider: AzureDevOpsCredentialsProvider;
     },
   );
   // (undocumented)
@@ -219,7 +233,40 @@ export function createDatabaseClient(
     lifecycle: LifecycleService;
     pluginMetadata: PluginMetadataService;
   },
-): Knex<any, any[]>;
+): knexFactory.Knex<any, any[]>;
+
+// @public
+export function createLegacyAuthAdapters<
+  TOptions extends {
+    auth?: AuthService;
+    httpAuth?: HttpAuthService;
+    userInfo?: UserInfoService;
+    identity?: IdentityService;
+    tokenManager?: TokenManager;
+    discovery: PluginEndpointDiscovery;
+  },
+  TAdapters = (TOptions extends {
+    auth?: AuthService;
+  }
+    ? {
+        auth: AuthService;
+      }
+    : {}) &
+    (TOptions extends {
+      httpAuth?: HttpAuthService;
+    }
+      ? {
+          httpAuth: HttpAuthService;
+        }
+      : {}) &
+    (TOptions extends {
+      userInfo?: UserInfoService;
+    }
+      ? {
+          userInfo: UserInfoService;
+        }
+      : {}),
+>(options: TOptions): TAdapters;
 
 // @public
 export function createRootLogger(
@@ -238,7 +285,7 @@ export function createStatusCheckRouter(options: {
 }): Promise<express.Router>;
 
 // @public
-export class DatabaseManager {
+export class DatabaseManager implements LegacyRootDatabaseService {
   forPlugin(
     pluginId: string,
     deps?: {
@@ -264,6 +311,12 @@ export class DockerContainerRunner implements ContainerRunner {
   // (undocumented)
   runContainer(options: RunContainerOptions): Promise<void>;
 }
+
+// @public
+export function dropDatabase(
+  dbConfig: Config,
+  ...databases: Array<string>
+): Promise<void>;
 
 // @public
 export function ensureDatabaseExists(
@@ -375,14 +428,13 @@ export class Git {
   }): Promise<string | undefined>;
   // (undocumented)
   deleteRemote(options: { dir: string; remote: string }): Promise<void>;
-  fetch(options: { dir: string; remote?: string }): Promise<void>;
+  fetch(options: {
+    dir: string;
+    remote?: string;
+    tags?: boolean;
+  }): Promise<void>;
   // (undocumented)
-  static fromAuth: (options: {
-    username?: string;
-    password?: string;
-    token?: string;
-    logger?: LoggerService;
-  }) => Git;
+  static fromAuth: (options: StaticAuthOptions | AuthCallbackOptions) => Git;
   // (undocumented)
   init(options: { dir: string; defaultBranch?: string }): Promise<void>;
   log(options: { dir: string; ref?: string }): Promise<ReadCommitResult[]>;
@@ -407,18 +459,24 @@ export class Git {
     force?: boolean;
   }): Promise<PushResult>;
   readCommit(options: { dir: string; sha: string }): Promise<ReadCommitResult>;
+  remove(options: { dir: string; filepath: string }): Promise<void>;
   resolveRef(options: { dir: string; ref: string }): Promise<string>;
 }
 
 // @public
 export class GiteaUrlReader implements UrlReader {
-  constructor(integration: GiteaIntegration);
+  constructor(
+    integration: GiteaIntegration,
+    deps: {
+      treeResponseFactory: ReadTreeResponseFactory;
+    },
+  );
   // (undocumented)
   static factory: ReaderFactory;
   // (undocumented)
   read(url: string): Promise<Buffer>;
   // (undocumented)
-  readTree(): Promise<ReadTreeResponse>;
+  readTree(url: string, options?: ReadTreeOptions): Promise<ReadTreeResponse>;
   // (undocumented)
   readUrl(url: string, options?: ReadUrlOptions): Promise<ReadUrlResponse>;
   // (undocumented)
@@ -473,18 +531,7 @@ export class GitlabUrlReader implements UrlReader {
 }
 
 // @public
-export class HostDiscovery implements PluginEndpointDiscovery {
-  static fromConfig(
-    config: Config,
-    options?: {
-      basePath?: string;
-    },
-  ): HostDiscovery;
-  // (undocumented)
-  getBaseUrl(pluginId: string): Promise<string>;
-  // (undocumented)
-  getExternalBaseUrl(pluginId: string): Promise<string>;
-}
+export const HostDiscovery: typeof HostDiscovery_2;
 
 export { isChildPath };
 
@@ -525,7 +572,7 @@ export const legacyPlugin: (
       TransformedEnv<
         {
           cache: CacheClient;
-          config: ConfigService;
+          config: RootConfigService;
           database: PluginDatabaseManager;
           discovery: PluginEndpointDiscovery;
           logger: LoggerService;
@@ -545,11 +592,17 @@ export const legacyPlugin: (
 ) => BackendFeature;
 
 // @public
+export type LegacyRootDatabaseService = {
+  forPlugin(pluginId: string): PluginDatabaseManager;
+};
+
+// @public
 export function loadBackendConfig(options: {
   logger: LoggerService;
   remote?: LoadConfigOptionsRemote;
   additionalConfigs?: AppConfig[];
   argv: string[];
+  watch?: boolean;
 }): Promise<Config>;
 
 // @public (undocumented)
@@ -610,7 +663,9 @@ export interface ReadTreeResponseFactory {
   ): Promise<ReadTreeResponse>;
   // (undocumented)
   fromTarArchive(
-    options: ReadTreeResponseFactoryOptions,
+    options: ReadTreeResponseFactoryOptions & {
+      stripFirstDirectory?: boolean;
+    },
   ): Promise<ReadTreeResponse>;
   // (undocumented)
   fromZipArchive(
@@ -684,6 +739,7 @@ export type RunContainerOptions = {
   workingDir?: string;
   envVars?: Record<string, string>;
   pullImage?: boolean;
+  defaultUser?: boolean;
 };
 
 export { SearchOptions };
@@ -743,7 +799,15 @@ export type ServiceBuilder = {
 export function setRootLogger(newLogger: winston.Logger): void;
 
 // @public @deprecated
-export const SingleHostDiscovery: typeof HostDiscovery;
+export const SingleHostDiscovery: typeof HostDiscovery_2;
+
+// @public
+export type StaticAuthOptions = {
+  username?: string;
+  password?: string;
+  token?: string;
+  logger?: LoggerService;
+};
 
 // @public
 export type StatusCheck = () => Promise<any>;
@@ -781,12 +845,12 @@ export type UrlReadersOptions = {
   factories?: ReaderFactory[];
 };
 
-// @public
+// @public @deprecated
 export function useHotCleanup(
   _module: NodeModule,
   cancelEffect: () => void,
 ): void;
 
-// @public
+// @public @deprecated
 export function useHotMemoize<T>(_module: NodeModule, valueFactory: () => T): T;
 ```

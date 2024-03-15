@@ -13,6 +13,7 @@ import { ComponentProps } from 'react';
 import { CompoundEntityRef } from '@backstage/catalog-model';
 import { Entity } from '@backstage/catalog-model';
 import { IconButton } from '@material-ui/core';
+import { IconComponent } from '@backstage/core-plugin-api';
 import { InfoCardVariants } from '@backstage/core-components';
 import { LinkProps } from '@backstage/core-components';
 import { Observable } from '@backstage/types';
@@ -21,15 +22,26 @@ import { PropsWithChildren } from 'react';
 import { default as React_2 } from 'react';
 import { ReactNode } from 'react';
 import { RouteRef } from '@backstage/core-plugin-api';
-import { ScmIntegrationRegistry } from '@backstage/integration';
+import { scmIntegrationsApiRef } from '@backstage/integration-react';
 import { StyleRules } from '@material-ui/core/styles/withStyles';
 import { SystemEntity } from '@backstage/catalog-model';
 import { TableColumn } from '@backstage/core-components';
+import { TableOptions } from '@backstage/core-components';
+import { TextFieldProps } from '@material-ui/core';
+
+// @public (undocumented)
+export type AllowedEntityFilters<T extends DefaultEntityFilters> = {
+  [K in keyof T]-?: NonNullable<T[K]> extends EntityFilter & {
+    values: string[];
+  }
+    ? K
+    : never;
+}[keyof T];
 
 // @public
 export const AsyncEntityProvider: (
   props: AsyncEntityProviderProps,
-) => JSX.Element;
+) => React_2.JSX.Element;
 
 // @public
 export interface AsyncEntityProviderProps {
@@ -61,20 +73,34 @@ export const catalogApiRef: ApiRef<CatalogApi>;
 
 // @public (undocumented)
 export const CatalogFilterLayout: {
-  (props: { children: React_2.ReactNode }): JSX.Element;
-  Filters: (props: { children: React_2.ReactNode }) => JSX.Element;
-  Content: (props: { children: React_2.ReactNode }) => JSX.Element;
+  (props: { children: React_2.ReactNode }): React_2.JSX.Element;
+  Filters: (props: {
+    children: React_2.ReactNode;
+    options?: {
+      drawerBreakpoint?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number;
+      drawerAnchor?: 'left' | 'right' | 'top' | 'bottom';
+    };
+  }) => React_2.JSX.Element;
+  Content: (props: { children: React_2.ReactNode }) => React_2.JSX.Element;
 };
 
 // @public (undocumented)
 export type CatalogReactComponentsNameToClassKey = {
   CatalogReactUserListPicker: CatalogReactUserListPickerClassKey;
+  CatalogReactEntityDisplayName: CatalogReactEntityDisplayNameClassKey;
   CatalogReactEntityLifecyclePicker: CatalogReactEntityLifecyclePickerClassKey;
   CatalogReactEntitySearchBar: CatalogReactEntitySearchBarClassKey;
   CatalogReactEntityTagPicker: CatalogReactEntityTagPickerClassKey;
   CatalogReactEntityOwnerPicker: CatalogReactEntityOwnerPickerClassKey;
   CatalogReactEntityProcessingStatusPicker: CatalogReactEntityProcessingStatusPickerClassKey;
+  CatalogReactEntityAutocompletePickerClassKey: CatalogReactEntityAutocompletePickerClassKey;
 };
+
+// @public (undocumented)
+export type CatalogReactEntityAutocompletePickerClassKey = 'root' | 'label';
+
+// @public
+export type CatalogReactEntityDisplayNameClassKey = 'root' | 'icon';
 
 // @public (undocumented)
 export type CatalogReactEntityLifecyclePickerClassKey = 'input';
@@ -127,7 +153,7 @@ export const columnFactories: Readonly<{
 export type DefaultEntityFilters = {
   kind?: EntityKindFilter;
   type?: EntityTypeFilter;
-  user?: UserListFilter;
+  user?: UserListFilter | EntityUserFilter;
   owners?: EntityOwnerFilter;
   lifecycles?: EntityLifecycleFilter;
   tags?: EntityTagFilter;
@@ -135,6 +161,63 @@ export type DefaultEntityFilters = {
   orphan?: EntityOrphanFilter;
   error?: EntityErrorFilter;
   namespace?: EntityNamespaceFilter;
+};
+
+// @public
+export function defaultEntityPresentation(
+  entityOrRef: Entity | CompoundEntityRef | string,
+  context?: {
+    defaultKind?: string;
+    defaultNamespace?: string;
+  },
+): EntityRefPresentationSnapshot;
+
+// @public (undocumented)
+export const DefaultFilters: (
+  props: DefaultFiltersProps,
+) => React_2.JSX.Element;
+
+// @public
+export type DefaultFiltersProps = {
+  initialKind?: string;
+  initiallySelectedFilter?: UserListFilterKind;
+  ownerPickerMode?: EntityOwnerPickerProps['mode'];
+  initiallySelectedNamespaces?: string[];
+};
+
+// @public (undocumented)
+export function EntityAutocompletePicker<
+  T extends DefaultEntityFilters = DefaultEntityFilters,
+  Name extends AllowedEntityFilters<T> = AllowedEntityFilters<T>,
+>(props: EntityAutocompletePickerProps<T, Name>): React_2.JSX.Element | null;
+
+// @public (undocumented)
+export type EntityAutocompletePickerProps<
+  T extends DefaultEntityFilters = DefaultEntityFilters,
+  Name extends AllowedEntityFilters<T> = AllowedEntityFilters<T>,
+> = {
+  label: string;
+  name: Name;
+  path: string;
+  showCounts?: boolean;
+  Filter: {
+    new (values: string[]): NonNullable<T[Name]>;
+  };
+  InputProps?: TextFieldProps;
+  initialSelectedOptions?: string[];
+  filtersForAvailableValues?: Array<keyof T>;
+};
+
+// @public
+export const EntityDisplayName: (props: EntityDisplayNameProps) => JSX.Element;
+
+// @public
+export type EntityDisplayNameProps = {
+  entityRef: Entity | CompoundEntityRef | string;
+  hideIcon?: boolean;
+  disableTooltip?: boolean;
+  defaultKind?: string;
+  defaultNamespace?: string;
 };
 
 // @public
@@ -170,7 +253,7 @@ export class EntityKindFilter implements EntityFilter {
 // @public (undocumented)
 export const EntityKindPicker: (
   props: EntityKindPickerProps,
-) => JSX.Element | null;
+) => React_2.JSX.Element | null;
 
 // @public
 export interface EntityKindPickerProps {
@@ -187,6 +270,8 @@ export class EntityLifecycleFilter implements EntityFilter {
   // (undocumented)
   filterEntity(entity: Entity): boolean;
   // (undocumented)
+  getCatalogFilters(): Record<string, string | string[]>;
+  // (undocumented)
   toQueryValue(): string[];
   // (undocumented)
   readonly values: string[];
@@ -195,7 +280,7 @@ export class EntityLifecycleFilter implements EntityFilter {
 // @public (undocumented)
 export const EntityLifecyclePicker: (props: {
   initialFilter?: string[];
-}) => JSX.Element;
+}) => React_2.JSX.Element;
 
 // @public
 export const EntityListContext: React_2.Context<
@@ -217,12 +302,26 @@ export type EntityListContextProps<
   queryParameters: Partial<Record<keyof EntityFilters, string | string[]>>;
   loading: boolean;
   error?: Error;
+  pageInfo?: {
+    next?: () => void;
+    prev?: () => void;
+  };
+  totalItems?: number;
 };
 
 // @public
 export const EntityListProvider: <EntityFilters extends DefaultEntityFilters>(
-  props: PropsWithChildren<{}>,
-) => JSX.Element;
+  props: EntityListProviderProps,
+) => React_2.JSX.Element;
+
+// @public (undocumented)
+export type EntityListProviderProps = PropsWithChildren<{
+  pagination?:
+    | boolean
+    | {
+        limit?: number;
+      };
+}>;
 
 // @public (undocumented)
 export type EntityLoadingStatus<TEntity extends Entity = Entity> = {
@@ -238,19 +337,31 @@ export class EntityNamespaceFilter implements EntityFilter {
   // (undocumented)
   filterEntity(entity: Entity): boolean;
   // (undocumented)
+  getCatalogFilters(): Record<string, string | string[]>;
+  // (undocumented)
   toQueryValue(): string[];
   // (undocumented)
   readonly values: string[];
 }
 
 // @public (undocumented)
-export const EntityNamespacePicker: () => JSX.Element;
+export const EntityNamespacePicker: (
+  props: EntityNamespacePickerProps,
+) => React_2.JSX.Element;
+
+// @public
+export interface EntityNamespacePickerProps {
+  // (undocumented)
+  initiallySelectedNamespaces?: string[];
+}
 
 // @public
 export class EntityOrphanFilter implements EntityFilter {
   constructor(value: boolean);
   // (undocumented)
   filterEntity(entity: Entity): boolean;
+  // (undocumented)
+  getCatalogFilters(): Record<string, string | string[]>;
   // (undocumented)
   readonly value: boolean;
 }
@@ -260,6 +371,8 @@ export class EntityOwnerFilter implements EntityFilter {
   constructor(values: string[]);
   // (undocumented)
   filterEntity(entity: Entity): boolean;
+  // (undocumented)
+  getCatalogFilters(): Record<string, string | string[]>;
   toQueryValue(): string[];
   // (undocumented)
   readonly values: string[];
@@ -268,7 +381,7 @@ export class EntityOwnerFilter implements EntityFilter {
 // @public (undocumented)
 export const EntityOwnerPicker: (
   props?: EntityOwnerPickerProps,
-) => JSX.Element | null;
+) => React_2.JSX.Element | null;
 
 // @public (undocumented)
 export type EntityOwnerPickerProps = {
@@ -278,7 +391,7 @@ export type EntityOwnerPickerProps = {
 // @public
 export const EntityPeekAheadPopover: (
   props: EntityPeekAheadPopoverProps,
-) => JSX.Element;
+) => React_2.JSX.Element;
 
 // @public
 export type EntityPeekAheadPopoverProps = PropsWithChildren<{
@@ -286,11 +399,27 @@ export type EntityPeekAheadPopoverProps = PropsWithChildren<{
   delayTime?: number;
 }>;
 
-// @public (undocumented)
-export const EntityProcessingStatusPicker: () => JSX.Element;
+// @public
+export interface EntityPresentationApi {
+  forEntity(
+    entityOrRef: Entity | string,
+    context?: {
+      defaultKind?: string;
+      defaultNamespace?: string;
+    },
+  ): EntityRefPresentation;
+}
 
 // @public
-export const EntityProvider: (props: EntityProviderProps) => JSX.Element;
+export const entityPresentationApiRef: ApiRef<EntityPresentationApi>;
+
+// @public (undocumented)
+export const EntityProcessingStatusPicker: () => React_2.JSX.Element;
+
+// @public
+export const EntityProvider: (
+  props: EntityProviderProps,
+) => React_2.JSX.Element;
 
 // @public
 export interface EntityProviderProps {
@@ -307,33 +436,41 @@ export const EntityRefLink: (props: EntityRefLinkProps) => JSX.Element;
 export type EntityRefLinkProps = {
   entityRef: Entity | CompoundEntityRef | string;
   defaultKind?: string;
+  defaultNamespace?: string;
   title?: string;
   children?: React_2.ReactNode;
+  hideIcon?: boolean;
 } & Omit<LinkProps, 'to'>;
 
 // @public
 export function EntityRefLinks<
   TRef extends string | CompoundEntityRef | Entity,
->(props: EntityRefLinksProps<TRef>): JSX.Element;
+>(props: EntityRefLinksProps<TRef>): React_2.JSX.Element;
 
 // @public
 export type EntityRefLinksProps<
   TRef extends string | CompoundEntityRef | Entity,
-> = (
-  | {
-      defaultKind?: string;
-      entityRefs: TRef[];
-      fetchEntities?: false;
-      getTitle?(entity: TRef): string | undefined;
-    }
-  | {
-      defaultKind?: string;
-      entityRefs: TRef[];
-      fetchEntities: true;
-      getTitle(entity: Entity): string | undefined;
-    }
-) &
-  Omit<LinkProps, 'to'>;
+> = {
+  defaultKind?: string;
+  entityRefs: TRef[];
+  hideIcons?: boolean;
+  fetchEntities?: boolean;
+  getTitle?(entity: TRef): string | undefined;
+} & Omit<LinkProps, 'to'>;
+
+// @public
+export interface EntityRefPresentation {
+  snapshot: EntityRefPresentationSnapshot;
+  update$?: Observable<EntityRefPresentationSnapshot>;
+}
+
+// @public
+export interface EntityRefPresentationSnapshot {
+  entityRef: string;
+  Icon?: IconComponent | undefined | false;
+  primaryTitle: string;
+  secondaryTitle?: string;
+}
 
 // @public
 export function entityRouteParams(entity: Entity): {
@@ -350,7 +487,7 @@ export const entityRouteRef: RouteRef<{
 }>;
 
 // @public
-export const EntitySearchBar: () => JSX.Element;
+export const EntitySearchBar: () => React_2.JSX.Element;
 
 // @public (undocumented)
 export type EntitySourceLocation = {
@@ -360,7 +497,7 @@ export type EntitySourceLocation = {
 
 // @public
 export const EntityTable: {
-  <T extends Entity>(props: EntityTableProps<T>): JSX.Element;
+  <T extends Entity>(props: EntityTableProps<T>): React_2.JSX.Element;
   columns: Readonly<{
     createEntityRefColumn<T_1 extends Entity>(options: {
       defaultKind?: string | undefined;
@@ -395,6 +532,8 @@ export interface EntityTableProps<T extends Entity> {
   // (undocumented)
   entities: T[];
   // (undocumented)
+  tableOptions?: TableOptions;
+  // (undocumented)
   title: string;
   // (undocumented)
   variant?: InfoCardVariants;
@@ -406,13 +545,17 @@ export class EntityTagFilter implements EntityFilter {
   // (undocumented)
   filterEntity(entity: Entity): boolean;
   // (undocumented)
+  getCatalogFilters(): Record<string, string | string[]>;
+  // (undocumented)
   toQueryValue(): string[];
   // (undocumented)
   readonly values: string[];
 }
 
 // @public (undocumented)
-export const EntityTagPicker: (props: EntityTagPickerProps) => JSX.Element;
+export const EntityTagPicker: (
+  props: EntityTagPickerProps,
+) => React_2.JSX.Element;
 
 // @public (undocumented)
 export type EntityTagPickerProps = {
@@ -424,6 +567,11 @@ export class EntityTextFilter implements EntityFilter {
   constructor(value: string);
   // (undocumented)
   filterEntity(entity: Entity): boolean;
+  // (undocumented)
+  getFullTextFilters(): {
+    term: string;
+    fields: string[];
+  };
   // (undocumented)
   readonly value: string;
 }
@@ -444,7 +592,7 @@ export class EntityTypeFilter implements EntityFilter {
 // @public (undocumented)
 export const EntityTypePicker: (
   props: EntityTypePickerProps,
-) => JSX.Element | null;
+) => React_2.JSX.Element | null;
 
 // @public
 export interface EntityTypePickerProps {
@@ -454,8 +602,30 @@ export interface EntityTypePickerProps {
   initialFilter?: string;
 }
 
+// @public (undocumented)
+export class EntityUserFilter implements EntityFilter {
+  // (undocumented)
+  static all(): EntityUserFilter;
+  // (undocumented)
+  filterEntity(entity: Entity): boolean;
+  // (undocumented)
+  getCatalogFilters(): Record<string, string[]>;
+  // (undocumented)
+  static owned(ownershipEntityRefs: string[]): EntityUserFilter;
+  // (undocumented)
+  readonly refs?: string[] | undefined;
+  // (undocumented)
+  static starred(starredEntityRefs: string[]): EntityUserFilter;
+  // (undocumented)
+  toQueryValue(): string;
+  // (undocumented)
+  readonly value: UserListFilterKind;
+}
+
 // @public
-export const FavoriteEntity: (props: FavoriteEntityProps) => JSX.Element;
+export const FavoriteEntity: (
+  props: FavoriteEntityProps,
+) => React_2.JSX.Element;
 
 // @public (undocumented)
 export type FavoriteEntityProps = ComponentProps<typeof IconButton> & {
@@ -474,7 +644,7 @@ export function getEntityRelations(
 // @public (undocumented)
 export function getEntitySourceLocation(
   entity: Entity,
-  scmIntegrationsApi: ScmIntegrationRegistry,
+  scmIntegrationsApi: typeof scmIntegrationsApiRef.T,
 ): EntitySourceLocation | undefined;
 
 // @public (undocumented)
@@ -491,7 +661,16 @@ export function InspectEntityDialog(props: {
   open: boolean;
   entity: Entity;
   onClose: () => void;
-}): JSX.Element | null;
+}): React_2.JSX.Element | null;
+
+// @public
+export function MissingAnnotationEmptyState(props: {
+  annotation: string | string[];
+  readMoreUrl?: string;
+}): React_2.JSX.Element;
+
+// @public (undocumented)
+export type MissingAnnotationEmptyStateClassKey = 'code';
 
 // @public (undocumented)
 export function MockEntityListContextProvider<
@@ -500,7 +679,7 @@ export function MockEntityListContextProvider<
   props: PropsWithChildren<{
     value?: Partial<EntityListContextProps<T>>;
   }>,
-): JSX.Element;
+): React_2.JSX.Element;
 
 // @public
 export class MockStarredEntitiesApi implements StarredEntitiesApi {
@@ -522,7 +701,7 @@ export const starredEntitiesApiRef: ApiRef<StarredEntitiesApi>;
 // @public (undocumented)
 export const UnregisterEntityDialog: (
   props: UnregisterEntityDialogProps,
-) => JSX.Element;
+) => React_2.JSX.Element;
 
 // @public (undocumented)
 export type UnregisterEntityDialogProps = {
@@ -554,6 +733,15 @@ export function useEntityOwnership(): {
 };
 
 // @public
+export function useEntityPresentation(
+  entityOrRef: Entity | CompoundEntityRef | string,
+  context?: {
+    defaultKind?: string;
+    defaultNamespace?: string;
+  },
+): EntityRefPresentationSnapshot;
+
+// @public
 export function useEntityTypeFilter(): {
   loading: boolean;
   error?: Error;
@@ -575,7 +763,7 @@ export function useRelatedEntities(
   error: Error | undefined;
 };
 
-// @public
+// @public @deprecated
 export class UserListFilter implements EntityFilter {
   constructor(
     value: UserListFilterKind,
@@ -598,7 +786,9 @@ export class UserListFilter implements EntityFilter {
 export type UserListFilterKind = 'owned' | 'starred' | 'all';
 
 // @public (undocumented)
-export const UserListPicker: (props: UserListPickerProps) => JSX.Element;
+export const UserListPicker: (
+  props: UserListPickerProps,
+) => React_2.JSX.Element;
 
 // @public (undocumented)
 export type UserListPickerProps = {

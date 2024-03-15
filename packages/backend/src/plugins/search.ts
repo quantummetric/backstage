@@ -16,17 +16,17 @@
 
 import { useHotCleanup } from '@backstage/backend-common';
 import { DefaultAdrCollatorFactory } from '@backstage/plugin-adr-backend';
-import { DefaultCatalogCollatorFactory } from '@backstage/plugin-catalog-backend';
-import { ToolDocumentCollatorFactory } from '@backstage/plugin-explore-backend';
+import { DefaultCatalogCollatorFactory } from '@backstage/plugin-search-backend-module-catalog';
+import { ToolDocumentCollatorFactory } from '@backstage/plugin-search-backend-module-explore';
 import { createRouter } from '@backstage/plugin-search-backend';
 import { ElasticSearchSearchEngine } from '@backstage/plugin-search-backend-module-elasticsearch';
 import { PgSearchEngine } from '@backstage/plugin-search-backend-module-pg';
 import {
   IndexBuilder,
+  SearchEngine,
   LunrSearchEngine,
 } from '@backstage/plugin-search-backend-node';
-import { SearchEngine } from '@backstage/plugin-search-common';
-import { DefaultTechDocsCollatorFactory } from '@backstage/plugin-techdocs-backend';
+import { DefaultTechDocsCollatorFactory } from '@backstage/plugin-search-backend-module-techdocs';
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
 
@@ -43,6 +43,7 @@ async function createSearchEngine(
   if (await PgSearchEngine.supported(env.database)) {
     return await PgSearchEngine.fromConfig(env.config, {
       database: env.database,
+      logger: env.logger,
     });
   }
 
@@ -116,6 +117,7 @@ export default async function createPlugin(
   return await createRouter({
     engine: indexBuilder.getSearchEngine(),
     types: indexBuilder.getDocumentTypes(),
+    discovery: env.discovery,
     permissions: env.permissions,
     config: env.config,
     logger: env.logger,

@@ -22,6 +22,7 @@ import { loggerToWinstonLogger } from '@backstage/backend-common';
 import {
   RegisterCollatorParameters,
   RegisterDecoratorParameters,
+  SearchEngine,
   LunrSearchEngine,
 } from '@backstage/plugin-search-backend-node';
 import {
@@ -33,7 +34,6 @@ import {
 } from '@backstage/plugin-search-backend-node/alpha';
 
 import { createRouter } from './service/router';
-import { SearchEngine } from '@backstage/plugin-search-common';
 
 class SearchIndexRegistry implements SearchIndexRegistryExtensionPoint {
   private collators: RegisterCollatorParameters[] = [];
@@ -75,7 +75,7 @@ class SearchEngineRegistry implements SearchEngineRegistryExtensionPoint {
  * The Search plugin is responsible for starting search indexing processes and return search results.
  * @alpha
  */
-export const searchPlugin = createBackendPlugin({
+export default createBackendPlugin({
   pluginId: 'search',
   register(env) {
     const searchIndexRegistry = new SearchIndexRegistry();
@@ -93,12 +93,24 @@ export const searchPlugin = createBackendPlugin({
     env.registerInit({
       deps: {
         logger: coreServices.logger,
-        config: coreServices.config,
+        config: coreServices.rootConfig,
+        discovery: coreServices.discovery,
         permissions: coreServices.permissions,
+        auth: coreServices.auth,
         http: coreServices.httpRouter,
+        httpAuth: coreServices.httpAuth,
         searchIndexService: searchIndexServiceRef,
       },
-      async init({ config, logger, permissions, http, searchIndexService }) {
+      async init({
+        config,
+        logger,
+        discovery,
+        permissions,
+        auth,
+        http,
+        httpAuth,
+        searchIndexService,
+      }) {
         let searchEngine = searchEngineRegistry.getSearchEngine();
         if (!searchEngine) {
           searchEngine = new LunrSearchEngine({
@@ -117,7 +129,10 @@ export const searchPlugin = createBackendPlugin({
 
         const router = await createRouter({
           config,
+          discovery,
           permissions,
+          auth,
+          httpAuth,
           logger: loggerToWinstonLogger(logger),
           engine: searchEngine,
           types: searchIndexService.getDocumentTypes(),

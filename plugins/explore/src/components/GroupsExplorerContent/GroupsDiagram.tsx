@@ -15,7 +15,6 @@
  */
 
 import {
-  GroupEntity,
   parseEntityRef,
   RELATION_CHILD_OF,
   stringifyEntityRef,
@@ -31,67 +30,72 @@ import { configApiRef, useApi, useRouteRef } from '@backstage/core-plugin-api';
 import {
   catalogApiRef,
   entityRouteRef,
-  humanizeEntityRef,
   getEntityRelations,
+  EntityDisplayName,
 } from '@backstage/plugin-catalog-react';
-import { BackstageTheme } from '@backstage/theme';
-import { makeStyles, Typography, useTheme } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import ZoomOutMap from '@material-ui/icons/ZoomOutMap';
 import classNames from 'classnames';
 import React from 'react';
 import useAsync from 'react-use/lib/useAsync';
 
-const useStyles = makeStyles((theme: BackstageTheme) => ({
-  graph: {
-    minHeight: '100%',
-    flex: 1,
-  },
-  graphWrapper: {
-    display: 'flex',
-    height: '100%',
-  },
-  organizationNode: {
-    fill: theme.palette.secondary.light,
-    stroke: theme.palette.secondary.light,
-  },
-  groupNode: {
-    fill: theme.palette.primary.light,
-    stroke: theme.palette.primary.light,
-  },
-  centeredContent: {
-    padding: theme.spacing(1),
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: theme.palette.common.black,
-  },
-  legend: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    padding: theme.spacing(1),
-    '& .icon': {
-      verticalAlign: 'bottom',
+const useStyles = makeStyles(
+  theme => ({
+    graph: {
+      minHeight: '100%',
+      flex: 1,
     },
+    graphWrapper: {
+      display: 'flex',
+      height: '100%',
+    },
+    organizationNode: {
+      fill: theme.palette.secondary.light,
+      stroke: theme.palette.secondary.light,
+    },
+    groupNode: {
+      fill: theme.palette.primary.light,
+      stroke: theme.palette.primary.light,
+    },
+    centeredContent: {
+      padding: theme.spacing(1),
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: theme.palette.common.black,
+    },
+    legend: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      padding: theme.spacing(1),
+      '& .icon': {
+        verticalAlign: 'bottom',
+      },
+    },
+    textOrganization: {
+      color: theme.palette.secondary.contrastText,
+    },
+    textGroup: {
+      color: theme.palette.primary.contrastText,
+    },
+    textWrapper: {
+      display: '-webkit-box',
+      WebkitBoxOrient: 'vertical',
+      WebkitLineClamp: 2,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: '20px',
+    },
+  }),
+  {
+    name: 'ExploreGroupsDiagram',
   },
-  textOrganization: {
-    color: theme.palette.secondary.contrastText,
-  },
-  textGroup: {
-    color: theme.palette.primary.contrastText,
-  },
-  textWrapper: {
-    display: '-webkit-box',
-    WebkitBoxOrient: 'vertical',
-    WebkitLineClamp: 2,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: '20px',
-  },
-}));
+);
 
 function RenderNode(props: DependencyGraphTypes.RenderNodeProps<any>) {
   const nodeWidth = 180;
@@ -136,7 +140,9 @@ function RenderNode(props: DependencyGraphTypes.RenderNodeProps<any>) {
         rx={theme.shape.borderRadius}
         className={classes.groupNode}
       />
-      <title>{props.node.name}</title>
+      <title>
+        <EntityDisplayName entityRef={props.node.id} hideIcon disableTooltip />
+      </title>
 
       <Link
         to={catalogEntityRoute({
@@ -148,7 +154,7 @@ function RenderNode(props: DependencyGraphTypes.RenderNodeProps<any>) {
         <foreignObject width={nodeWidth} height={nodeHeight}>
           <div className={classes.centeredContent}>
             <div className={classNames(classes.textWrapper, classes.textGroup)}>
-              {props.node.name}
+              <EntityDisplayName entityRef={props.node.id} hideIcon />
             </div>
           </div>
         </foreignObject>
@@ -160,7 +166,9 @@ function RenderNode(props: DependencyGraphTypes.RenderNodeProps<any>) {
 /**
  * Dynamically generates a diagram of groups registered in the catalog.
  */
-export function GroupsDiagram() {
+export function GroupsDiagram(props: {
+  direction?: DependencyGraphTypes.Direction;
+}) {
   const nodes = new Array<{
     id: string;
     kind: string;
@@ -204,9 +212,7 @@ export function GroupsDiagram() {
     nodes.push({
       id: stringifyEntityRef(catalogItem),
       kind: catalogItem.kind,
-      name:
-        (catalogItem as GroupEntity).spec?.profile?.displayName ||
-        humanizeEntityRef(catalogItem, { defaultKind: 'Group' }),
+      name: '',
     });
 
     // Edge to parent
@@ -239,7 +245,7 @@ export function GroupsDiagram() {
         nodes={nodes}
         edges={edges}
         nodeMargin={10}
-        direction={DependencyGraphTypes.Direction.RIGHT_LEFT}
+        direction={props.direction || DependencyGraphTypes.Direction.RIGHT_LEFT}
         renderNode={RenderNode}
         className={classes.graph}
         fit="contain"

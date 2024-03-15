@@ -1,12 +1,119 @@
 # @backstage/theme
 
+## 0.5.2-next.0
+
+### Patch Changes
+
+- 6f4d2a0: Exported `defaultTypography` to make adjusting these values in a custom theme easier
+
+## 0.5.1
+
+### Patch Changes
+
+- dd5d7cc: Fixed missing extra variables like `applyDarkStyles` in Mui V5 theme after calling `createUnifiedThemeFromV4` function
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+
+## 0.5.1-next.1
+
+### Patch Changes
+
+- dd5d7cc: Fixed missing extra variables like `applyDarkStyles` in Mui V5 theme after calling `createUnifiedThemeFromV4` function
+
+## 0.5.1-next.0
+
+### Patch Changes
+
+- 8fe56a8: Widen `@types/react` dependency range to include version 18.
+
+## 0.5.0
+
+### Minor Changes
+
+- 4d9e3b3: Added a global `OverrideComponentNameToClassKeys` for other plugins and packages to populate using module augmentation. This will in turn will provide component style override types for `createUnifiedTheme`.
+
+### Patch Changes
+
+- cd0dd4c: Align Material UI v5 `Paper` component background color in dark mode to v4.
+
+## 0.5.0-next.1
+
+### Patch Changes
+
+- cd0dd4c: Align Material UI v5 `Paper` component background color in dark mode to v4.
+
+## 0.5.0-next.0
+
+### Minor Changes
+
+- 4d9e3b39e4: Added a global `OverrideComponentNameToClassKeys` for other plugins and packages to populate using module augmentation. This will in turn will provide component style override types for `createUnifiedTheme`.
+
+## 0.4.4
+
+### Patch Changes
+
+- 6c2b872153: Add official support for React 18.
+
+## 0.4.4-next.0
+
+### Patch Changes
+
+- 6c2b872153: Add official support for React 18.
+
+## 0.4.3
+
+### Patch Changes
+
+- 5ad5344756: Added support for string `fontSize` values (e.g. `"2.5rem"`) in themes in addition to numbers. Also added an optional `fontFamily` prop for header typography variants to allow further customization.
+
+## 0.4.3-next.0
+
+### Patch Changes
+
+- 5ad5344756: Added support for string `fontSize` values (e.g. `"2.5rem"`) in themes in addition to numbers. Also added an optional `fontFamily` prop for header typography variants to allow further customization.
+
+## 0.4.2
+
+### Patch Changes
+
+- 406b786a2a2c: Mark package as being free of side effects, allowing more optimized Webpack builds.
+
+## 0.4.2-next.0
+
+### Patch Changes
+
+- 406b786a2a2c: Mark package as being free of side effects, allowing more optimized Webpack builds.
+
+## 0.4.1
+
+### Patch Changes
+
+- 4f28914d9f0e: Overwrite `PaletteOptions` & `ThemeOptions` type to allow use of `createTheme` from `@backstage/theme` as well as `@material-ui/core/styles` with the same type. Also replaced the default `CSSBaseline` with v4 instead of v5 for better backwards compatibility for now.
+- 41c5aa0ab589: Applying the modified `theme.spacing` method only to overrides instead of replacing it in the whole theme.
+- 9395baa82413: You can now customize the typography of your theme by passing in your own custom typography defaults
+- 8174cf4c0edf: Fixing MUI / Material UI references
+- f0444f094396: Removed the hard coded color and background color in the `MuiChip` overrides so that they work better with custom themes
+- 874c3e8bf909: Override the spacing to a v5 compliant method
+
+## 0.4.1-next.1
+
+### Patch Changes
+
+- 8174cf4c0edf: Fixing MUI / Material UI references
+
+## 0.4.1-next.0
+
+### Patch Changes
+
+- 4f28914d9f0e: Overwrite `PaletteOptions` & `ThemeOptions` type to allow use of `createTheme` from `@backstage/theme` as well as `@material-ui/core/styles` with the same type. Also replaced the default `CSSBaseline` with v4 instead of v5 for better backwards compatibility for now.
+- 874c3e8bf909: Override the spacing to a v5 compliant method
+
 ## 0.4.0
 
 ### Minor Changes
 
-- 1fd38bc4141a: **MUI v5 Support:** Adding platform-wide support for MUI v5 allowing a transition phase for migrating central plugins & components over. We still support v4 instances & plugins by adding a
+- 1fd38bc4141a: **Material UI v5 Support:** Adding platform-wide support for Material UI v5 allowing a transition phase for migrating central plugins & components over. We still support v4 instances & plugins by adding a
 
-  To allow the future support of plugins & components using MUI v5 you want to upgrade your `AppTheme`'s to using the `UnifiedThemeProvider`
+  To allow the future support of plugins & components using Material UI v5 you want to upgrade your `AppTheme`'s to using the `UnifiedThemeProvider`
 
   ```diff
        Provider: ({ children }) => (
@@ -31,9 +138,9 @@
 
 ### Minor Changes
 
-- 1fd38bc4141a: **MUI v5 Support:** Adding platform-wide support for MUI v5 allowing a transition phase for migrating central plugins & components over. We still support v4 instances & plugins by adding a
+- 1fd38bc4141a: **Material UI v5 Support:** Adding platform-wide support for Material UI v5 allowing a transition phase for migrating central plugins & components over. We still support v4 instances & plugins by adding a
 
-  To allow the future support of plugins & components using MUI v5 you want to upgrade your `AppTheme`'s to using the `UnifiedThemeProvider`
+  To allow the future support of plugins & components using Material UI v5 you want to upgrade your `AppTheme`'s to using the `UnifiedThemeProvider`
 
   ```diff
        Provider: ({ children }) => (
@@ -201,7 +308,7 @@
 
 ### Patch Changes
 
-- 2089de76b: Deprecated `ItemCard`. Added `ItemCardGrid` and `ItemCardHeader` instead, that can be used to compose functionality around regular Material-UI `Card` components instead.
+- 2089de76b: Deprecated `ItemCard`. Added `ItemCardGrid` and `ItemCardHeader` instead, that can be used to compose functionality around regular Material UI `Card` components instead.
 
 ## 0.2.3
 

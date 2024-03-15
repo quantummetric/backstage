@@ -6,14 +6,25 @@
 /// <reference types="react" />
 
 import { BackstagePlugin } from '@backstage/core-plugin-api';
+import { Entity } from '@backstage/catalog-model';
 import { IconComponent } from '@backstage/core-plugin-api';
+import { JSX as JSX_2 } from 'react';
 import { RouteRef } from '@backstage/core-plugin-api';
+
+// @public (undocumented)
+export const CODESCENE_PROJECT_ANNOTATION = 'codescene.io/project-id';
+
+// @public (undocumented)
+export const CodeSceneEntityFileSummary: () => JSX_2.Element;
+
+// @public (undocumented)
+export const CodeSceneEntityKPICard: () => JSX_2.Element;
 
 // @public (undocumented)
 export const CodeSceneIcon: IconComponent;
 
 // @public (undocumented)
-export const CodeScenePage: () => JSX.Element;
+export const CodeScenePage: () => JSX_2.Element;
 
 // @public (undocumented)
 export const codescenePlugin: BackstagePlugin<
@@ -23,12 +34,14 @@ export const codescenePlugin: BackstagePlugin<
       projectId: string;
     }>;
   },
-  {},
   {}
 >;
 
 // @public (undocumented)
-export const CodeSceneProjectDetailsPage: () => JSX.Element;
+export const CodeSceneProjectDetailsPage: () => JSX_2.Element;
+
+// @public (undocumented)
+export const isCodeSceneAvailable: (entity: Entity) => boolean;
 
 // (No @packageDocumentation comment for this package)
 ```
