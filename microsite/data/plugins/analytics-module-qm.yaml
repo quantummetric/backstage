@@ -4,5 +4,5 @@ category: Monitoring
 description: Track usage of your Backstage instance using Quantum Metric.
 documentation: https://github.com/quantummetric/analytics-module-qm/blob/main/README.md
 iconUrl: /img/qm-icon.png
-npmPackageName: '@backstage/plugin-analytics-module-ga'
+npmPackageName: '@quantum-metric/plugin-analytics-module-qm'
 addedDate: '2024-03-15'
